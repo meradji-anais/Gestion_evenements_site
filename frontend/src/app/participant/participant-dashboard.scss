@@ -1,0 +1,29 @@
+@import '../home/home.scss';
+
+.role-header {
+  text-align: center;
+  padding: 30px 20px;
+
+  h2 { color: var(--accent-600); font-size: 2rem; }
+  p { opacity: 0.8; }
+}
+
+.role-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  padding: 20px;
+
+  .action-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 12px rgba(0,0,0,0.08);
+    padding: 18px;
+    transition: 0.3s;
+
+    &:hover { transform: scale(1.02); }
+
+    h3 { color: var(--accent-600); margin-bottom: 8px; }
+    p { opacity: 0.85; }
+  }
+}

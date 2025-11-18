@@ -1,0 +1,113 @@
+<section class="role-header">
+  <h2>🎫 Interface Participant</h2>
+  <p>Rechercher, s'inscrire et suivre vos événements</p>
+  
+  <button class="notif-btn" (click)="toggleNotifications()">
+    🔔 Notifications
+    <span *ngIf="unreadCount > 0" class="badge-count">{{ unreadCount }}</span>
+  </button>
+</section>
+
+<!-- PANEL NOTIFICATIONS -->
+<section *ngIf="showNotifications" class="modal-overlay" (click)="toggleNotifications()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h3>🔔 Mes Notifications</h3>
+    
+    <div *ngIf="notifications.length === 0" class="empty-state">
+      <p>Aucune notification pour le moment.</p>
+    </div>
+
+    <div *ngFor="let notif of notifications" class="notif-item" [class.unread]="!notif.isRead">
+      <div class="notif-header">
+        <strong>
+          <span *ngIf="notif.type === 'REGISTRATION_CONFIRMED'">✅</span>
+          <span *ngIf="notif.type === 'EVENT_MODIFIED'">✏️</span>
+          <span *ngIf="notif.type === 'EVENT_CANCELLED'">❌</span>
+          <span *ngIf="notif.type === 'REMINDER'">⏰</span>
+          {{ notif.type }}
+        </strong>
+        <span class="notif-date">{{ notif.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <p>{{ notif.message }}</p>
+      <button *ngIf="!notif.isRead" class="btn-mark-read" (click)="markAsRead(notif.id!)">
+        ✅ Marquer comme lu
+      </button>
+    </div>
+
+    <button class="secondary" (click)="toggleNotifications()">Fermer</button>
+  </div>
+</section>
+
+<section class="role-actions">
+  <div class="action-card">
+    <h3>🔍 Recherche d'événements</h3>
+    <input 
+      type="text" 
+      [(ngModel)]="searchKeyword" 
+      placeholder="Mot-clé, lieu, type..."
+      style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 0.5rem;">
+    
+    <input 
+      type="date" 
+      [(ngModel)]="searchDate" 
+      placeholder="Filtrer par date"
+      style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
+    
+    <div class="cta-buttons">
+      <button class="primary" (click)="searchEvents()">🔍 Rechercher</button>
+      <button class="secondary" (click)="searchKeyword=''; searchDate=''; loadEvents()">🔄 Réinitialiser</button>
+    </div>
+  </div>
+
+  <div class="action-card">
+    <h3>📋 Mes inscriptions</h3>
+    <p class="stat-number">{{ myRegistrations.length }}</p>
+    <p>inscription(s) actives</p>
+    <div class="cta-buttons">
+      <button class="primary" (click)="loadMyRegistrations()">🔄 Actualiser</button>
+    </div>
+  </div>
+</section>
+
+<!-- MES INSCRIPTIONS -->
+<section class="events-list" *ngIf="myRegistrations.length > 0">
+  <h3>📌 Mes Événements Inscrits</h3>
+
+  <div class="event-card" *ngFor="let reg of myRegistrations">
+    <div class="event-info">
+      <h4>Événement ID: {{ reg.eventId }}</h4>
+      <p>Nom: {{ reg.name }}</p>
+      <p>Statut : <span class="badge confirmed">{{ reg.status }}</span></p>
+      <p>Inscrit le : {{ reg.registeredAt | date:'dd/MM/yyyy HH:mm' }}</p>
+      <button class="secondary" (click)="unregister(reg.id!)">❌ Se désinscrire</button>
+    </div>
+  </div>
+</section>
+
+<section class="events-list">
+  <h3>🎉 Événements disponibles</h3>
+
+  <div *ngIf="events.length === 0" style="text-align: center; padding: 2rem;">
+    <p>Aucun événement trouvé.</p>
+  </div>
+
+  <div class="event-card" *ngFor="let event of events">
+    <img [src]="event.imageUrl || 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=900&q=60'" />
+    <div class="event-info">
+      <h4>{{ event.title }}</h4>
+      <p>
+        <span *ngIf="event.type === 'CONFERENCE'">🎤</span>
+        <span *ngIf="event.type === 'FORMATION'">📚</span>
+        <span *ngIf="event.type === 'CONCERT'">🎵</span>
+        <span *ngIf="event.type === 'WORKSHOP'">🛠️</span>
+        <span *ngIf="event.type === 'JOURNEE_SCIENTIFIQUE'">🔬</span>
+        {{ event.type }} • {{ event.eventDate | date:'dd/MM/yyyy HH:mm' }}
+      </p>
+      <p>📍 {{ event.location }}</p>
+      <p>👥 Capacité : {{ event.capacity }} personnes</p>
+      <div class="cta-buttons">
+        <button class="primary" (click)="registerToEvent(event.id!)">✅ S'inscrire</button>
+      </div>
+    </div>
+  </div>
+</section>

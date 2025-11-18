@@ -1,0 +1,238 @@
+/* -----------------------------------------------------------
+   GLOBAL THEME — Pastel Rose
+   ----------------------------------------------------------- */
+
+/* Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Backgrounds */
+  --bg: #fff7fb;
+  --bg-light: #fffafd;
+  --card-bg: #ffffff;
+
+  /* Pink palette */
+  --pink-100: #ffeef7;
+  --pink-200: #ffd9ef;
+  --pink-300: #ffbfe3;
+  --pink-400: #ff9fd7;
+
+  /* Accent (main color) */
+  --accent: #ff7abf;
+  --accent-hover: #e767ab;
+  --accent-600: #d94f9b;
+
+  /* Text */
+  --text-dark: #2b1b24;
+  --text-muted: #8b7680;
+
+  /* Special effects */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --shadow: 0 8px 24px rgba(18, 10, 20, 0.06);
+
+  /* Borders & radius */
+  --radius: 14px;
+  --radius-sm: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: linear-gradient(180deg, var(--bg), #ffffff);
+  color: var(--text-dark);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* -----------------------------------------------------------
+   UTILITY CLASSES
+   ----------------------------------------------------------- */
+
+.container {
+  max-width: 1200px;
+  padding: 1rem;
+  margin: 2rem auto;
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.row {
+  display: flex;
+  gap: 1rem;
+}
+
+.col {
+  flex: 1;
+}
+
+.hidden {
+  display: none !important;
+}
+
+
+/* -----------------------------------------------------------
+   BUTTONS — reusable across all components
+   ----------------------------------------------------------- */
+
+button,
+.btn {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  padding: 0.75rem 1.6rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  transition: 0.2s ease-in-out;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  box-shadow: var(--shadow);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: var(--pink-200);
+  color: var(--text-dark);
+}
+
+.btn-secondary:hover {
+  background: var(--pink-300);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+}
+
+.btn-outline:hover {
+  background: var(--accent);
+  color: white;
+}
+
+
+/* -----------------------------------------------------------
+   CARDS — events, dashboard items, etc.
+   ----------------------------------------------------------- */
+
+.card {
+  background: var(--card-bg);
+  padding: 1.2rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+
+/* -----------------------------------------------------------
+   SECTION HEADERS
+   ----------------------------------------------------------- */
+
+.section-title {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--accent-600);
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+
+/* -----------------------------------------------------------
+   NAVBAR
+   ----------------------------------------------------------- */
+
+.navbar {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--pink-100);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+}
+
+.nav-btn {
+  color: var(--accent-600);
+  font-weight: 600;
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--radius-sm);
+  transition: 0.2s;
+}
+
+.nav-btn:hover {
+  background: var(--pink-300);
+  color: white;
+}
+
+
+/* -----------------------------------------------------------
+   HERO SECTIONS
+   ----------------------------------------------------------- */
+
+.hero {
+  text-align: center;
+  padding: 2rem;
+  background: var(--pink-100);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.hero h2 {
+  font-size: 2.4rem;
+  color: var(--accent-600);
+}
+
+.hero p {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+
+/* -----------------------------------------------------------
+   EVENT LIST
+   ----------------------------------------------------------- */
+
+.event-card {
+  display: flex;
+  gap: 1.2rem;
+  background: var(--card-bg);
+  padding: 1rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 1rem;
+  transition: 0.2s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+}
+
+.event-card img {
+  width: 150px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}

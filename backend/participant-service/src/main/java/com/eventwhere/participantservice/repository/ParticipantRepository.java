@@ -1,0 +1,10 @@
+package com.eventwhere.participantservice.repository;
+
+import com.eventwhere.participantservice.model.Participant;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface ParticipantRepository extends JpaRepository<Participant, Long> {
+    List<Participant> findByEventId(Long eventId);
+    List<Participant> findByEmail(String email);
+}

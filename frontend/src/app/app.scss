@@ -1,0 +1,56 @@
+$app-pink: #f8c6da;
+$app-pink-light: #fde6f1;
+$app-pink-dark: #e89ab7;
+$app-gray: #444;
+
+.app-container {
+  background: $app-pink-light;
+  min-height: 100vh;
+  font-family: "Poppins", sans-serif;
+  color: $app-gray;
+  padding-bottom: 50px;
+}
+
+/* HEADER */
+.header {
+  background: linear-gradient(135deg, $app-pink, $app-pink-dark);
+  text-align: center;
+  padding: 40px 20px;
+  color: white;
+
+  .title {
+    font-size: 2.6rem;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    opacity: 0.9;
+    font-size: 1.2rem;
+  }
+}
+
+/* NAVIGATION */
+.navbar {
+  background: white;
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  border-bottom: 2px solid $app-pink;
+
+  button {
+    background: $app-pink;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+
+    &:hover {
+      background: $app-pink-dark;
+      transform: scale(1.05);
+    }
+  }
+}

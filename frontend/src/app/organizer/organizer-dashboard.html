@@ -1,0 +1,227 @@
+<section class="role-header">
+  <h2> Interface Organisateur</h2>
+  <p>Créer, gérer et analyser vos événements</p>
+</section>
+
+<!-- CARTES FONCTIONNALITÉS -->
+<section class="role-actions">
+  
+  <!-- CARTE 1 : CRÉER ÉVÉNEMENT -->
+  <div class="action-card">
+    <div class="card-icon">📅</div>
+    <h3>Créer un événement</h3>
+    <p>Conférences, formations, concerts, workshops...</p>
+    <button class="primary" (click)="toggleCreateForm()">
+      {{ showCreateForm ? '❌ Annuler' : '➕ Nouveau' }}
+    </button>
+  </div>
+
+  <!-- CARTE 2 : GÉRER PARTICIPANTS -->
+  <div class="action-card">
+    <div class="card-icon">👥</div>
+    <h3>Gérer les participants</h3>
+    <p>Voir la liste, statuts, export CSV</p>
+    <button class="primary" (click)="viewParticipants(events[0]?.id || 0)" [disabled]="events.length === 0">
+      📋 Voir liste
+    </button>
+  </div>
+
+  <!-- CARTE 3 : STATISTIQUES -->
+  <div class="action-card">
+    <div class="card-icon">📊</div>
+    <h3>Statistiques</h3>
+    <p>Inscriptions, taux, popularité par type</p>
+    <button class="primary" (click)="viewStats()">
+      📈 Voir stats
+    </button>
+  </div>
+
+  <!-- CARTE 4 : NOTIFICATIONS -->
+  <div class="action-card">
+    <div class="card-icon">🔔</div>
+    <h3>Notifications</h3>
+    <p>Confirmation, modification, rappels</p>
+    <button class="primary" (click)="openNotificationForm()">
+      📤 Envoyer
+    </button>
+  </div>
+
+</section>
+
+<!-- FORMULAIRE CRÉATION ÉVÉNEMENT -->
+<section *ngIf="showCreateForm" class="modal-overlay" (click)="toggleCreateForm()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h3>📅 Nouvel Événement</h3>
+    <form (ngSubmit)="createEvent()" class="event-form">
+      
+      <div class="form-group">
+        <label>Titre *</label>
+        <input type="text" [(ngModel)]="newEvent.title" name="title" required>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="newEvent.description" name="description" rows="3"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Type d'événement *</label>
+        <select [(ngModel)]="newEvent.type" name="type" required>
+          <option value="CONFERENCE">🎤 Conférence</option>
+          <option value="FORMATION">📚 Formation</option>
+          <option value="CONCERT">🎵 Concert</option>
+          <option value="WORKSHOP">🛠️ Workshop</option>
+          <option value="JOURNEE_SCIENTIFIQUE">🔬 Journée Scientifique</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Lieu *</label>
+          <input type="text" [(ngModel)]="newEvent.location" name="location" required>
+        </div>
+
+        <div class="form-group">
+          <label>Capacité</label>
+          <input type="number" [(ngModel)]="newEvent.capacity" name="capacity" min="1">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Date et heure *</label>
+        <input type="datetime-local" [(ngModel)]="newEvent.eventDate" name="eventDate" required>
+      </div>
+
+      <div class="form-group">
+        <label>📎 Ajouter des médias</label>
+        <div class="media-upload">
+          <button type="button" class="btn-upload">🖼️ Images</button>
+          <button type="button" class="btn-upload">🎥 Vidéos</button>
+          <button type="button" class="btn-upload">📄 Documents</button>
+        </div>
+        <small style="color: #666;">Affiche, programme, plan de salle (à implémenter)</small>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="primary">✅ Créer l'événement</button>
+        <button type="button" class="secondary" (click)="toggleCreateForm()">❌ Annuler</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- MODAL PARTICIPANTS -->
+<section *ngIf="showParticipants" class="modal-overlay" (click)="closeModals()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h3>👥 Liste des Participants</h3>
+    
+    <div *ngIf="participants.length === 0" class="empty-state">
+      <p>Aucun participant inscrit pour le moment.</p>
+    </div>
+
+    <table *ngIf="participants.length > 0" class="participants-table">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Email</th>
+          <th>Statut</th>
+          <th>Date d'inscription</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of participants">
+          <td>{{ p.name }}</td>
+          <td>{{ p.email }}</td>
+          <td>
+            <span class="badge" [class.pending]="p.status === 'PENDING'" 
+                               [class.confirmed]="p.status === 'CONFIRMED'">
+              {{ p.status }}
+            </span>
+          </td>
+          <td>{{ p.registeredAt | date:'dd/MM/yyyy' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <button class="secondary" (click)="closeModals()">Fermer</button>
+  </div>
+</section>
+
+<!-- MODAL STATISTIQUES -->
+<section *ngIf="showStats" class="modal-overlay" (click)="closeModals()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h3>📊 Statistiques des Événements</h3>
+    
+    <div class="stats-grid">
+      <div class="stat-card" *ngFor="let type of stats | keyvalue">
+        <h4>{{ type.key }}</h4>
+        <p class="stat-number">{{ type.value.count }} événement(s)</p>
+        <p class="stat-detail">{{ type.value.participants }} participant(s)</p>
+      </div>
+
+      <div class="stat-card total">
+        <h4>TOTAL</h4>
+        <p class="stat-number">{{ events.length }} événements</p>
+      </div>
+    </div>
+
+    <button class="secondary" (click)="closeModals()">Fermer</button>
+  </div>
+</section>
+
+<!-- MODAL NOTIFICATIONS -->
+<section *ngIf="showNotificationForm" class="modal-overlay" (click)="closeModals()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h3>🔔 Envoyer une Notification</h3>
+    
+    <form (ngSubmit)="sendNotification()" class="event-form">
+      <div class="form-group">
+        <label>Email destinataire</label>
+        <input type="email" [(ngModel)]="newNotification.email" name="email" required>
+      </div>
+
+      <div class="form-group">
+        <label>Type de notification</label>
+        <select [(ngModel)]="newNotification.type" name="type">
+          <option value="REGISTRATION_CONFIRMED">✅ Confirmation d'inscription</option>
+          <option value="EVENT_MODIFIED">✏️ Modification d'événement</option>
+          <option value="EVENT_CANCELLED">❌ Annulation d'événement</option>
+          <option value="REMINDER">⏰ Rappel</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Message</label>
+        <textarea [(ngModel)]="newNotification.message" name="message" rows="4" required></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="primary">📤 Envoyer</button>
+        <button type="button" class="secondary" (click)="closeModals()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- LISTE MES ÉVÉNEMENTS -->
+<section class="events-list">
+  <h3>📋 Mes Événements</h3>
+
+  <div *ngIf="events.length === 0" class="empty-state">
+    <p>🎯 Vous n'avez pas encore créé d'événement.</p>
+    <button class="primary" (click)="toggleCreateForm()">➕ Créer mon premier événement</button>
+  </div>
+
+  <div class="event-card" *ngFor="let event of events">
+    <img [src]="event.imageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=900&q=60'" />
+    <div class="event-info">
+      <h4>{{ event.title }}</h4>
+      <p>{{ event.type }} • {{ event.eventDate | date:'dd/MM/yyyy HH:mm' }}</p>
+      <p>📍 {{ event.location }} • 👥 Capacité: {{ event.capacity }}</p>
+      <div class="cta-buttons">
+        <button class="primary" (click)="viewParticipants(event.id!)">👥 Participants</button>
+        <button class="secondary" (click)="deleteEvent(event.id!)">🗑️ Supprimer</button>
+      </div>
+    </div>
+  </div>
+</section>
