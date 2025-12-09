@@ -6,9 +6,9 @@ spring:
     name: participant-service
 
   datasource:
-    url: jdbc:mysql://localhost:3306/participant_db
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
+    url: jdbc:h2:file:./data/participant_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
     password: ""
 
   jpa:
@@ -16,6 +16,15 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
 
 # ACTIVER EUREKA
 eureka:

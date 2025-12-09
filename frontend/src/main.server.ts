@@ -5,6 +5,6 @@ import { AppComponent } from './app/app';
 import { config } from './app/app.config.server';
 
 const bootstrap = (context: BootstrapContext) =>
-    bootstrapApplication(AppComponent, config, context);  // ← Et ici aussi
+    bootstrapApplication(AppComponent, config, context);  
 
 export default bootstrap;

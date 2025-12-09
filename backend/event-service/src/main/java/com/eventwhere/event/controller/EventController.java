@@ -19,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/events")
-@CrossOrigin(origins = "http://localhost:4200")
+//@CrossOrigin(origins = "http://localhost:4200")
 public class EventController {
     
     @Autowired
@@ -50,7 +50,8 @@ public class EventController {
         Path filePath = uploadPath.resolve(filename);
         Files.copy(file.getInputStream(), filePath);
         
-        String fileUrl = "http://localhost:9091/uploads/" + filename;
+       // String fileUrl = "http://localhost:9091/uploads/" + filename;
+        String fileUrl = "http://localhost:9090/uploads/" + filename;
         
         eventRepository.findById(eventId).ifPresent(event -> {
             event.setImageUrl(fileUrl);

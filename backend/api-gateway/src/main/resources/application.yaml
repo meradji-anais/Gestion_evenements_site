@@ -8,6 +8,13 @@ spring:
 
     gateway:
       routes:
+        # AJOUTE CETTE ROUTE EN PREMIER (pour les fichiers statiques)
+        - id: uploads-static
+          uri: http://localhost:9091
+          predicates:
+            - Path=/uploads/**
+        
+        # Routes existantes
         - id: event-service
           uri: lb://EVENT-SERVICE
           predicates:

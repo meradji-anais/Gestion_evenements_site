@@ -1,7 +1,9 @@
-$app-pink: #f8c6da;
+$app-pink: #e59494;
 $app-pink-light: #fde6f1;
-$app-pink-dark: #e89ab7;
+$app-pink-dark: #68123b;
 $app-gray: #444;
+$app-beige: #e3d4cb;
+
 
 .app-container {
   background: $app-pink-light;
@@ -53,7 +55,7 @@ $app-gray: #444;
       transform: scale(1.05);
     }
   }
-}  // ← Cette accolade manquait !
+}  
 
 /* HERO SECTION */
 .hero {
@@ -62,7 +64,7 @@ $app-gray: #444;
 
   h2 {
     font-size: 2rem;
-    color: $app-pink-dark;
+    color: $app-pink;
   }
 
   p {

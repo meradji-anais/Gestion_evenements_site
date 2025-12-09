@@ -5,8 +5,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
+@EnableDiscoveryClient
 @ComponentScan(basePackages = "com.eventwhere.participantservice")
 @EntityScan(basePackages = "com.eventwhere.participantservice.model")
 @EnableJpaRepositories(basePackages = "com.eventwhere.participantservice.repository")

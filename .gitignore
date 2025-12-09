@@ -1,0 +1,31 @@
+# === Backend databases ===
+*.mv.db
+*.trace.db
+*.h2.db
+*.db
+*.sql
+
+# === Logs ===
+*.log
+
+# === Temporary / uploads folders ===
+data/
+uploads/
+
+# === Angular / Frontend ===
+/dist
+/node_modules
+/.angular/cache
+/tmp
+/out-tsc
+npm-debug.log
+yarn-error.log
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# === Misc ===
+.DS_Store
+Thumbs.db

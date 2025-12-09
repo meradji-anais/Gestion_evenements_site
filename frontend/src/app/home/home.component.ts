@@ -1,5 +1,3 @@
-
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -13,24 +11,25 @@ import { EventService, Event } from '../services/event.service';
   styleUrl: './home.scss'
 })
 export class HomeComponent implements OnInit {
-  events: Event[] = []; // Plus de données fictives 
-  loading = true;
-
+  events: Event[] = [];
+  loading = false;
+  
   constructor(private eventService: EventService) {}
-
+  
   ngOnInit() {
     this.loadEvents();
   }
-
+  
   loadEvents() {
     this.eventService.getAllEvents().subscribe({
       next: (data) => {
-        this.events = data;
-        this.loading = false;
+        // Prendre juste les 3 premiers événements
+        this.events = (data || []).slice(0, 3);
+        console.log('✅ Événements chargés:', this.events);
       },
       error: (err) => {
-        console.error('Erreur chargement événements', err);
-        this.loading = false;
+        console.error('❌ Erreur:', err);
+        this.events = [];
       }
     });
   }

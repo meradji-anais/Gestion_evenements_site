@@ -12,8 +12,9 @@ public class Media {
     private Long id;
     
     private Long eventId;
-    private String type; // IMAGE, VIDEO, DOCUMENT, AFFICHE, PROGRAMME, PLAN
+    private String type; // IMAGE, VIDEO, DOCUMENT ( pdf )
     private String filename;
     private String url;
     private LocalDateTime uploadedAt = LocalDateTime.now();
 }
+

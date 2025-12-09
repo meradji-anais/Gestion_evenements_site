@@ -31,3 +31,18 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Backend database files
+*.mv.db
+*.trace.db
+*.h2.db
+*.db
+*.sql
+
+# Logs
+*.log
+
+# Temporary / uploads folders
+data/
+uploads/
+

@@ -1,91 +1,108 @@
 <section class="role-header">
-  <h2>🎫 Interface Participant</h2>
-  <p>Rechercher, s'inscrire et suivre vos événements</p>
-  
-  <button class="notif-btn" (click)="toggleNotifications()">
-    🔔 Notifications
-    <span *ngIf="unreadCount > 0" class="badge-count">{{ unreadCount }}</span>
-  </button>
+  <h2>Interface Participant</h2>
+  <p style="text-align:center;">Rechercher, s'inscrire et suivre vos événements</p>
+
+  <div style="display:flex; justify-content:center; margin-top:12px;">
+    <button class="primary" (click)="toggleNotifications()">🔔 Notifications <span *ngIf="unreadCount > 0" class="badge-count">{{ unreadCount }}</span></button>
+  </div>
 </section>
 
 <!-- PANEL NOTIFICATIONS -->
 <section *ngIf="showNotifications" class="modal-overlay" (click)="toggleNotifications()">
   <div class="modal-content" (click)="$event.stopPropagation()">
-    <h3>🔔 Mes Notifications</h3>
-    
+    <h3>🔔 Mes notifications</h3>
+
     <div *ngIf="notifications.length === 0" class="empty-state">
       <p>Aucune notification pour le moment.</p>
     </div>
 
-    <div *ngFor="let notif of notifications" class="notif-item" [class.unread]="!notif.isRead">
+    <div *ngFor="let notif of notifications" class="notif-item" [class.unread]="!notif?.isRead">
       <div class="notif-header">
         <strong>
-          <span *ngIf="notif.type === 'REGISTRATION_CONFIRMED'">✅</span>
-          <span *ngIf="notif.type === 'EVENT_MODIFIED'">✏️</span>
-          <span *ngIf="notif.type === 'EVENT_CANCELLED'">❌</span>
-          <span *ngIf="notif.type === 'REMINDER'">⏰</span>
+          <span *ngIf="notif.type === 'REGISTRATION_CONFIRMED'">Confirmation</span>
+          <span *ngIf="notif.type === 'EVENT_MODIFIED'">Modification</span>
+          <span *ngIf="notif.type === 'EVENT_CANCELLED'">Annulation</span>
+          <span *ngIf="notif.type === 'REMINDER'">Rappel</span>
           {{ notif.type }}
         </strong>
-        <span class="notif-date">{{ notif.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        <span *ngIf="notif.eventTitle" style="display:block; font-size:0.9em; color:#666; margin-top:4px;">
+           Événement: {{ notif.eventTitle }}
+        </span>
       </div>
-      <p>{{ notif.message }}</p>
-      <button *ngIf="!notif.isRead" class="btn-mark-read" (click)="markAsRead(notif.id!)">
-        ✅ Marquer comme lu
-      </button>
+      <p class="notif-message">{{ notif.message }}</p>
+      <div class="notif-meta" style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="notif-date">{{ notif.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        <button *ngIf="!notif?.isRead" class="btn-mark-read secondary" (click)="markAsRead(notif.id!)">Marquer comme lu</button>
+      </div>
     </div>
 
-    <button class="secondary" (click)="toggleNotifications()">Fermer</button>
+    <div class="modal-actions" style="display:flex; gap:8px; justify-content:flex-start; margin-top:12px;">
+      <button class="secondary" (click)="toggleNotifications()">Fermer</button>
+      <button class="danger" (click)="clearNotifications()">Effacer</button>
+    </div>
   </div>
 </section>
 
 <section class="role-actions">
   <div class="action-card">
-    <h3>🔍 Recherche d'événements</h3>
-    <input 
-      type="text" 
-      [(ngModel)]="searchKeyword" 
-      placeholder="Mot-clé, lieu, type..."
-      style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 0.5rem;">
-    
-    <input 
-      type="date" 
-      [(ngModel)]="searchDate" 
-      placeholder="Filtrer par date"
-      style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
-    
+    <h3>Recherche d'événements</h3>
+    <div style="display:flex; gap:8px; margin-bottom:1rem; align-items:center;">
+      <input 
+        type="text" 
+        [(ngModel)]="searchKeyword" 
+        placeholder="Mot-clé, lieu, type..."
+        style="flex:2; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px;">
+      <input
+        type="date"
+        [(ngModel)]="searchDate"
+        style="flex:1; padding: 0.6rem; border: 1px solid #ddd; border-radius: 4px;" />
+    </div>
     <div class="cta-buttons">
-      <button class="primary" (click)="searchEvents()">🔍 Rechercher</button>
-      <button class="secondary" (click)="searchKeyword=''; searchDate=''; loadEvents()">🔄 Réinitialiser</button>
+      <button class="primary" (click)="searchEvents()">Rechercher</button>
+      <button class="secondary" (click)="searchKeyword=''; searchDate=''; loadEvents()">Réinitialiser</button>
     </div>
   </div>
 
   <div class="action-card">
-    <h3>📋 Mes inscriptions</h3>
-    <p class="stat-number">{{ myRegistrations.length }}</p>
-    <p>inscription(s) actives</p>
+    <h3>Mes inscriptions</h3>
+    <p>{{ myRegistrations.length }} inscription(s)</p>
     <div class="cta-buttons">
-      <button class="primary" (click)="loadMyRegistrations()">🔄 Actualiser</button>
+      <button class="primary" (click)="loadMyRegistrations()">Actualiser</button>
+      <button class="primary" (click)="toggleRegistrationsModal()">Consulter</button>
     </div>
   </div>
 </section>
 
-<!-- MES INSCRIPTIONS -->
-<section class="events-list" *ngIf="myRegistrations.length > 0">
-  <h3>📌 Mes Événements Inscrits</h3>
+<!-- MY REGISTRATIONS MODAL -->
+<section *ngIf="showMyRegistrationsModal" class="modal-overlay" (click)="toggleRegistrationsModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h3>Mes événements inscrits</h3>
 
-  <div class="event-card" *ngFor="let reg of myRegistrations">
-    <div class="event-info">
-      <h4>Événement ID: {{ reg.eventId }}</h4>
-      <p>Nom: {{ reg.name }}</p>
-      <p>Statut : <span class="badge confirmed">{{ reg.status }}</span></p>
-      <p>Inscrit le : {{ reg.registeredAt | date:'dd/MM/yyyy HH:mm' }}</p>
-      <button class="secondary" (click)="unregister(reg.id!)">❌ Se désinscrire</button>
+    <div *ngIf="getRegisteredEventList().length === 0" class="empty-state">
+      <p>Vous n'êtes inscrit à aucun événement.</p>
+    </div>
+
+    <div *ngFor="let ev of getRegisteredEventList()" class="event-card small">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <img [src]="ev.imageUrl || 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=200&q=60'" style="width:80px; height:60px; object-fit:cover; border-radius:6px;" />
+        <div style="flex:1;">
+          <h4 style="margin:0">{{ ev.title }}</h4>
+          <p style="margin:0">{{ ev.eventDate | date:'dd/MM/yyyy' }} — {{ ev.location }}</p>
+        </div>
+        <div>
+          <button class="secondary" (click)="unregister(getRegistrationId(ev.id)!)">Se désinscrire</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; justify-content:flex-start; margin-top:12px;">
+      <button class="secondary" (click)="toggleRegistrationsModal()">Fermer</button>
     </div>
   </div>
 </section>
 
 <section class="events-list">
-  <h3>🎉 Événements disponibles</h3>
+  <h3>Événements disponibles</h3>
 
   <div *ngIf="events.length === 0" style="text-align: center; padding: 2rem;">
     <p>Aucun événement trouvé.</p>
@@ -93,21 +110,81 @@
 
   <div class="event-card" *ngFor="let event of events">
     <img [src]="event.imageUrl || 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=900&q=60'" />
-    <div class="event-info">
+    <div>
       <h4>{{ event.title }}</h4>
-      <p>
-        <span *ngIf="event.type === 'CONFERENCE'">🎤</span>
-        <span *ngIf="event.type === 'FORMATION'">📚</span>
-        <span *ngIf="event.type === 'CONCERT'">🎵</span>
-        <span *ngIf="event.type === 'WORKSHOP'">🛠️</span>
-        <span *ngIf="event.type === 'JOURNEE_SCIENTIFIQUE'">🔬</span>
-        {{ event.type }} • {{ event.eventDate | date:'dd/MM/yyyy HH:mm' }}
-      </p>
-      <p>📍 {{ event.location }}</p>
-      <p>👥 Capacité : {{ event.capacity }} personnes</p>
+      <p>{{ event.type }} • {{ event.eventDate | date:'dd/MM/yyyy' }}</p>
+      <p>Lieu : {{ event.location }}</p>
+      <p>Capacité : {{ event.capacity }} personnes</p>
       <div class="cta-buttons">
-        <button class="primary" (click)="registerToEvent(event.id!)">✅ S'inscrire</button>
+        <button class="secondary" (click)="openEventDetails(event)">Consulter</button>
+        <button *ngIf="!isRegistered(event.id)" class="primary" (click)="registerToEvent(event.id!)" [disabled]="pendingRegistrations.has(event.id!)">S'inscrire</button>
+        <button *ngIf="isRegistered(event.id)" class="secondary" (click)="unregister(getRegistrationId(event.id)!)" [disabled]="pendingUnregisterIds.has(getRegistrationId(event.id)!)">Se désinscrire</button>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- EVENT DETAIL MODAL -->
+<section *ngIf="showEventDetailModal && selectedEvent" class="modal-overlay" (click)="closeEventDetails()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div style="display:flex; gap:16px; align-items:flex-start;">
+      <img [src]="selectedEvent.imageUrl || 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=600&q=60'" alt="event media" style="width:240px; height:160px; object-fit:cover; border-radius:6px;" />
+      <div style="flex:1;">
+        <h3 style="margin-top:0">{{ selectedEvent.title }}</h3>
+        <p style="margin:4px 0"><strong>Type:</strong> {{ selectedEvent.type }}</p>
+        <p style="margin:4px 0"><strong>Date:</strong> {{ selectedEvent.eventDate | date:'dd/MM/yyyy HH:mm' }}</p>
+        <p style="margin:4px 0"><strong>Lieu:</strong> {{ selectedEvent.location }}</p>
+        <p style="margin:4px 0"><strong>Capacité:</strong> {{ selectedEvent.capacity }} personnes</p>
+        <p style="margin:4px 0"><strong>Organisateur:</strong> {{ selectedEvent.organizerName }} &lt;{{ selectedEvent.organizerEmail }}&gt;</p>
+      </div>
+    </div>
+    <hr />
+    <div style="margin-top:8px">
+      <h4>Description</h4>
+      <p>{{ selectedEvent.description }}</p>
+    </div>
+    <div style="display:flex; gap:8px; justify-content:flex-start; margin-top:12px;">
+      <button class="primary" (click)="openMediaModal(selectedEvent.id!)" *ngIf="selectedEvent.id">📄 Voir documents & vidéos</button>
+      <button class="secondary" (click)="closeEventDetails()">Fermer</button>
+    </div>
+  </div>
+</section>
+
+<!-- MEDIA MODAL (Documents & Vidéos) -->
+<section *ngIf="showMediaModal" class="modal-overlay" (click)="closeMediaModal()">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <h3>📄 Documents & Vidéos</h3>
+
+    <div *ngIf="selectedEventMedia.length === 0" class="empty-state">
+      <p>Aucun document ou vidéo pour cet événement.</p>
+    </div>
+
+    <div *ngIf="selectedEventMedia.length > 0" style="display:flex; flex-direction:column; gap:16px;">
+      <ng-container *ngFor="let media of selectedEventMedia">
+        <!-- Affichage des vidéos -->
+        <div *ngIf="media.type === 'video'" style="border:1px solid #ddd; padding:12px; border-radius:6px;">
+          <h4 style="margin-top:0;"> Vidéo: {{ media.filename }}</h4>
+          <video width="100%" height="400" controls style="border-radius:4px; margin-top:8px;">
+            <source [src]="media.url" type="video/mp4">
+            Votre navigateur ne supporte pas la vidéo.
+          </video>
+        </div>
+
+        <!-- Affichage des PDFs -->
+        <div *ngIf="media.type === 'doc'" style="border:1px solid #ddd; padding:12px; border-radius:6px;">
+          <h4 style="margin-top:0;">📄 Document: {{ media.filename }}</h4>
+          <iframe [src]="sanitizeUrl(media.url)" width="100%" height="600" style="border:none; border-radius:4px; margin-top:8px;"></iframe>
+          <a [href]="media.url" target="_blank" class="primary" style="display:inline-block; margin-top:8px;">💾 Télécharger</a>
+        </div>
+
+        <!-- Autres fichiers -->
+        <div *ngIf="media.type !== 'video' && media.type !== 'doc'" style="border:1px solid #ddd; padding:12px; border-radius:6px;">
+          <h4 style="margin-top:0;">📎 {{ media.filename }}</h4>
+          <a [href]="media.url" target="_blank" class="primary">Ouvrir le fichier</a>
+        </div>
+      </ng-container>
+    </div>
+
+    <button class="secondary" (click)="closeMediaModal()" style="margin-top:16px;">Fermer</button>
   </div>
 </section>

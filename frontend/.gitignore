@@ -41,3 +41,17 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+
+# Backend / Spring Boot
+*.mv.db
+*.h2.db
+*.db
+*.sql
+
+# Logs
+*.log
+
+# Dossiers temporaires / uploads
+data/
+uploads/
