@@ -1,5 +1,3 @@
-
-
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap, map } from 'rxjs'; 
@@ -17,7 +15,10 @@ export interface AuthUser {
 export class AuthService {
   
   private apiUrl = '/api/auth';
-  private currentUserSubject = new BehaviorSubject<AuthUser | null>(null);
+  
+ 
+  
+  private currentUserSubject = new BehaviorSubject<AuthUser | null | undefined>(undefined);
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) {
@@ -25,7 +26,6 @@ export class AuthService {
   }
 
   register(email: string, password: string, confirmPassword: string, role: string): Observable<AuthUser> {
-    
     return (this.http.post(`${this.apiUrl}/register`, 
       { email, password, confirmPassword, role }, 
       { withCredentials: true, responseType: 'text' }
@@ -37,7 +37,6 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<AuthUser> {
-    
     return (this.http.post(`${this.apiUrl}/login`, 
       { email, password }, 
       { withCredentials: true, responseType: 'text' }
@@ -59,19 +58,25 @@ export class AuthService {
 
   checkCurrentUser(): void {
     this.getCurrentUser().subscribe({
-      next: (user) => this.currentUserSubject.next(user),
-      error: () => this.currentUserSubject.next(null)
+      next: (user) => {
+        console.log(' Utilisateur récupéré:', user);
+        this.currentUserSubject.next(user);  
+      },
+      error: () => {
+        console.log(' Pas d\'utilisateur connecté');
+        this.currentUserSubject.next(null);  
+      }
     });
   }
 
-  get currentUserValue(): AuthUser | null {
+  get currentUserValue(): AuthUser | null | undefined {
     return this.currentUserSubject.value;
   }
 
   isLoggedIn(): boolean {
-    return this.currentUserSubject.value !== null;
+    const value = this.currentUserSubject.value;
+    return value !== null && value !== undefined;
   }
-  
   
   isOrganizer(): boolean {
     return this.currentUserSubject.value?.role === 'ORGANIZER';

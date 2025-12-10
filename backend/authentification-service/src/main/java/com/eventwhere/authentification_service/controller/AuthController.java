@@ -64,7 +64,9 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request, HttpSession session) {
+        System.out.println(" Tentative d'inscription: " + request.getEmail());
+        
         if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Email requis");
         }
@@ -97,11 +99,25 @@ public class AuthController {
         }
 
         User savedUser = userRepository.save(user);
+        
+        
+        session.setAttribute("userId", savedUser.getId());
+        session.setAttribute("userEmail", savedUser.getEmail());
+        session.setAttribute("userName", savedUser.getName());
+        session.setAttribute("userRole", savedUser.getRole().name());
+        
+        System.out.println(" Inscription réussie et session créée");
+        System.out.println("   - Email: " + savedUser.getEmail());
+        System.out.println("   - Session ID: " + session.getId());
+        System.out.println("   - User ID: " + savedUser.getId());
+        
         return ResponseEntity.ok(new AuthResponse(savedUser));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
+        System.out.println(" Tentative de connexion: " + request.getEmail());
+        
         if (request.getEmail() == null || request.getPassword() == null) {
             return ResponseEntity.badRequest().body("Email et password requis");
         }
@@ -109,12 +125,14 @@ public class AuthController {
         Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
         
         if (userOpt.isEmpty()) {
+            System.out.println(" Utilisateur introuvable: " + request.getEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou mot de passe incorrect");
         }
 
         User user = userOpt.get();
         
         if (!user.getPassword().equals(request.getPassword())) {
+            System.out.println(" Mot de passe incorrect pour: " + request.getEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou mot de passe incorrect");
         }
 
@@ -122,31 +140,49 @@ public class AuthController {
         session.setAttribute("userEmail", user.getEmail());
         session.setAttribute("userName", user.getName());
         session.setAttribute("userRole", user.getRole().name());
+        
+        System.out.println(" Connexion réussie");
+        System.out.println("   - Email: " + user.getEmail());
+        System.out.println("   - Session ID: " + session.getId());
+        System.out.println("   - User ID: " + user.getId());
 
         return ResponseEntity.ok(new AuthResponse(user));
     }
 
     @GetMapping("/current-user")
     public ResponseEntity<?> getCurrentUser(HttpSession session) {
+        System.out.println(" Vérification de la session...");
+        System.out.println("   - Session ID: " + session.getId());
+        System.out.println("   - Session new? " + session.isNew());
+        
         Long userId = (Long) session.getAttribute("userId");
         
         if (userId == null) {
+            System.out.println(" Aucun userId dans la session");
+            System.out.println("   - Attributs disponibles: " + java.util.Collections.list(session.getAttributeNames()));
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Non connecté");
         }
+        
+        System.out.println(" userId trouvé dans la session: " + userId);
 
         Optional<User> userOpt = userRepository.findById(userId);
         
         if (userOpt.isEmpty()) {
+            System.out.println(" Utilisateur ID " + userId + " introuvable dans la BDD");
             session.invalidate();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Session invalide");
         }
 
-        return ResponseEntity.ok(new AuthResponse(userOpt.get()));
+        User user = userOpt.get();
+        System.out.println(" Utilisateur trouvé: " + user.getEmail() + " (" + user.getRole() + ")");
+        return ResponseEntity.ok(new AuthResponse(user));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpSession session) {
+        System.out.println(" Déconnexion - Session ID: " + session.getId());
         session.invalidate();
+        System.out.println(" Session invalidée");
         return ResponseEntity.ok("Déconnecté");
     }
 

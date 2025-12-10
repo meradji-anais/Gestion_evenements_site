@@ -1,59 +1,51 @@
 <div class="app-container">
-  
-  <header class="header">
-    <h1 class="title"> EventWhere? </h1>
-    <p class="subtitle">Organiser, gérer et participer facilement</p>
-  </header>
+  <header class="header">
+    <h1 class="title"> EventWhere?</h1>
+    <p class="subtitle">Organiser, gérer et participer facilement</p>
+  </header>
 
-    <nav class="navbar">
-    
-    <div style="
-        max-width: 1200px; 
-        width: 100%;
-        margin: 0 auto; 
-        display: flex; 
-        align-items: center; 
-        justify-content: space-between; /* Distribue l'espace entre les éléments */
-    ">
+  <nav class="navbar">
+    <div style="max-width: 1200px; width: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: space-between;">
       
-      <div style="width: 160px; flex-shrink: 0;"></div> 
+      <div style="width: 160px; flex-shrink: 0;"></div>
 
       <div class="nav-links" style="display: flex; gap: 1rem; justify-content: center; margin: 0 auto;">
-        
         <button [routerLink]="authService.isLoggedIn() ? '/dashboard' : '/home'">
-  Accueil
-</button>
+          Accueil
+        </button>
         
         <ng-container *ngIf="authService.currentUser$ | async as user">
-          <button 
-            *ngIf="user.role === 'ORGANIZER'" 
-            routerLink="/organizer">
+          <button *ngIf="user.role === 'ORGANIZER'" routerLink="/organizer">
             Organisateur
           </button>
-          <button 
-            *ngIf="user.role === 'PARTICIPANT'" 
-            routerLink="/participant">
+          <button *ngIf="user.role === 'PARTICIPANT'" routerLink="/participant">
             Participant
           </button>
         </ng-container>
       </div>
 
       <div class="nav-right" style="width: 160px; text-align: right; flex-shrink: 0; position: relative;">
-        <div *ngIf="authService.isLoggedIn()" style="position:relative; display: inline-block;">
-          
-          <button (click)="toggleProfileMenu()" style="background:white; border:1px solid rgba(0,0,0,0.06); padding:6px 10px; border-radius:20px; cursor:pointer; font-weight:600; color:#68123b;">
-            {{ (authService.currentUser$ | async)?.name }} <span style="margin-left:6px;">▾</span>
+        <div *ngIf="authService.isLoggedIn()" style="position: relative; display: inline-block;">
+          <button 
+            (click)="toggleProfileMenu()" 
+            style="background: white; border: 1px solid rgba(0,0,0,0.06); padding: 6px 10px; border-radius: 20px; cursor: pointer; font-weight: 600; color: #68123b;">
+            {{ (authService.currentUser$ | async)?.name }} <span style="margin-left: 6px;">▾</span>
           </button>
 
-          <div *ngIf="showProfileMenu" style="position:absolute; right:0; top:calc(100% + 6px); background:white; border:1px solid rgba(0,0,0,0.08); padding:8px; border-radius:8px; box-shadow:0 6px 14px rgba(0,0,0,0.08); min-width: 150px; z-index: 10;">
-            <button (click)="logout()" style="background:transparent; border:none; cursor:pointer; font-weight:600; color:#dc3545; display:block; width:100%; text-align:left; padding: 6px 8px;">Se déconnecter</button>
+          <div 
+            *ngIf="showProfileMenu" 
+            style="position: absolute; right: 0; top: calc(100% + 6px); background: white; border: 1px solid rgba(0,0,0,0.08); padding: 8px; border-radius: 8px; box-shadow: 0 6px 14px rgba(0,0,0,0.08); min-width: 150px; z-index: 10;">
+            <button 
+              (click)="logout()" 
+              style="background: transparent; border: none; cursor: pointer; font-weight: 600; color: #dc3545; display: block; width: 100%; text-align: left; padding: 6px 8px;">
+              Se déconnecter
+            </button>
           </div>
         </div>
       </div>
       
     </div>
-  </nav>
+  </nav>
 
-  <router-outlet></router-outlet>
-
+  <router-outlet></router-outlet>
 </div>
