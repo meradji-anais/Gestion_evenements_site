@@ -1,17 +1,27 @@
-<div class="app-container">
-
-  <!-- SECTION HÉRO -->
+<div> 
   <section class="hero">
     <h2>Organisez & Explorez vos événements 🌟</h2>
     <p>Conférences • Formations • Concerts • Workshops • Journées scientifiques</p>
 
-    <div class="cta-buttons">
-      <button class="primary" routerLink="/organizer">Créer un événement</button>
-      <button class="secondary" routerLink="/participant">Voir les événements</button>
+    <div *ngIf="!authService.isLoggedIn()" class="cta-buttons">
+      <button class="primary" [routerLink]="['/auth']" [queryParams]="{ tab: 'register' }">Inscription</button>
+      <button class="secondary" [routerLink]="['/auth']" [queryParams]="{ tab: 'login' }">Connexion</button>
+    </div>
+
+    <div *ngIf="authService.isLoggedIn()" class="cta-buttons">
+      <p style="margin-bottom: 1rem;">
+        Bienvenue <strong>{{ authService.currentUserValue?.name }}</strong>
+        ({{ authService.currentUserValue?.role }})
+      </p>
+      <button class="primary" *ngIf="authService.isOrganizer()" routerLink="/organizer">
+        Mon espace organisateur
+      </button>
+      <button class="primary" *ngIf="authService.isParticipant()" routerLink="/participant">
+        Mon espace participant
+      </button>
     </div>
   </section>
 
-  <!-- LISTE D'ÉVÉNEMENTS RÉELS -->
   <section class="events-list">
     <h3>Événements à venir</h3>
 
@@ -29,10 +39,8 @@
         <h4>{{ event.title }}</h4>
         <p>Date : {{ event.eventDate | date:'dd/MM/yyyy' }}</p>
         <p>Lieu : {{ event.location }}</p>
-        <button class="details" routerLink="/participant">Voir détails</button>
       </div>
     </div>
   </section>
 
 </div>
-

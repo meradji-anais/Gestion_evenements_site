@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone } from '@angular/core';
+import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EventService, Event } from '../services/event.service';
@@ -6,8 +6,9 @@ import { ParticipantService, Participant } from '../services/participant.service
 import { NotificationService } from '../services/notification.service';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { DomSanitizer } from '@angular/platform-browser';
-import { ChangeDetectorRef } from '@angular/core';
 import { merge, forkJoin, tap, catchError, of } from 'rxjs';
+import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
 
 type EventWithPreview = Event & { previewImageUrl?: string | null };
 
@@ -66,6 +67,9 @@ export class OrganizerDashboardComponent implements OnInit {
     'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=900&q=60';
   Object = Object;
 
+  // UI profile menu
+  showProfileMenu = false;
+
   constructor(
     private eventService: EventService,
     private participantService: ParticipantService,
@@ -73,25 +77,28 @@ export class OrganizerDashboardComponent implements OnInit {
     private http: HttpClient,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    public authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit() {
     this.loadMyEvents();
   }
 
-  getEmptyEvent(): Event {
-    return {
-      title: '',
-      description: '',
-      type: 'CONFERENCE',
-      location: '',
-      eventDate: '',
-      capacity: 50,
-      organizerName: 'Admin',
-      organizerEmail: 'admin@eventwhere.com'
-    } as Event;
-  }
+ getEmptyEvent(): Event {
+  
+  return {
+    title: '',
+    description: '',
+    type: 'CONFERENCE',
+    location: '',
+    eventDate: '',
+    capacity: 50,
+    organizerName: 'Organisateur',
+    organizerEmail: '' 
+  } as Event;
+}
 
   private addCacheBuster(url: string | null | undefined): string | null {
     if (!url) return null;
@@ -101,10 +108,11 @@ export class OrganizerDashboardComponent implements OnInit {
   }
 
   loadMyEvents() {
-    this.eventService.getMyEvents('admin@eventwhere.com').subscribe({
+  const currentUserEmail = this.authService.currentUserValue?.email || 'admin@eventwhere.com';
+  this.eventService.getMyEvents(currentUserEmail).subscribe({
       next: (data) => {
         data.sort((a: Event, b: Event) => (b.id || 0) - (a.id || 0));
-        
+
         this.events = data.map((e) => ({ ...(e as Event), previewImageUrl: null })) as EventWithPreview[];
         const mediaCalls = this.events.map((ev) => (ev.id ? this.eventService.getEventMediaByEvent(ev.id) : of([])));
         forkJoin(mediaCalls).subscribe({
@@ -173,7 +181,6 @@ export class OrganizerDashboardComponent implements OnInit {
         return;
       }
 
-      
       try {
         if (this.selectedImagePreview && typeof this.selectedImagePreview === 'string' && this.selectedImagePreview.startsWith('blob:')) {
           URL.revokeObjectURL(this.selectedImagePreview);
@@ -181,21 +188,18 @@ export class OrganizerDashboardComponent implements OnInit {
       } catch (e) {}
 
       this.selectedImage = file;
-      this.uploadProgress = `✅ Image sélectionnée : ${file.name}`;
+      this.uploadProgress = ` Image sélectionnée : ${file.name}`;
 
-      
       try {
         this.selectedImagePreview = URL.createObjectURL(file);
         (this.newEvent as EventWithPreview).previewImageUrl = this.selectedImagePreview;
-        
+
         if (!this.isEditing) {
-          
           const tmp = this.events.find((ev) => !ev.id && ev.title === this.newEvent.title);
           if (tmp) tmp.previewImageUrl = this.selectedImagePreview;
         }
         this.ngZone.run(() => this.cdr.detectChanges());
       } catch (err) {
-        
         const reader = new FileReader();
         reader.onload = (e: any) => {
           this.selectedImagePreview = e.target.result;
@@ -215,7 +219,7 @@ export class OrganizerDashboardComponent implements OnInit {
         return;
       }
       this.selectedVideo = file;
-      this.uploadProgress = `✅ Vidéo sélectionnée : ${file.name}`;
+      this.uploadProgress = ` Vidéo sélectionnée : ${file.name}`;
       try {
         this.selectedVideoPreview = URL.createObjectURL(file);
       } catch (e) {
@@ -233,7 +237,7 @@ export class OrganizerDashboardComponent implements OnInit {
       } catch (e) {
         this.selectedDocsPreviews.push('');
       }
-      this.uploadProgress = `✅ Document ajouté : ${file.name}`;
+      this.uploadProgress = ` Document ajouté : ${file.name}`;
     }
   }
 
@@ -244,8 +248,17 @@ export class OrganizerDashboardComponent implements OnInit {
     }
     if (this.isSubmitting) return;
     this.isSubmitting = true;
+
     
-    const formattedEvent = { ...this.newEvent, eventDate: new Date(this.newEvent.eventDate).toISOString() };
+const currentUserEmail = this.authService.currentUserValue?.email || 'admin@eventwhere.com';
+const currentUserName = this.authService.currentUserValue?.name || 'Organisateur';
+
+const formattedEvent = { 
+  ...this.newEvent, 
+  eventDate: new Date(this.newEvent.eventDate).toISOString(),
+  organizerEmail: currentUserEmail,
+  organizerName: currentUserName
+};
 
     if (this.isEditing && this.editingEventId != null) {
       this.eventService.updateEvent(this.editingEventId, formattedEvent).subscribe({
@@ -269,7 +282,6 @@ export class OrganizerDashboardComponent implements OnInit {
       return;
     }
 
-    
     this.eventService.createEvent(formattedEvent).subscribe({
       next: (created) => {
         if (created && created.id) {
@@ -281,7 +293,7 @@ export class OrganizerDashboardComponent implements OnInit {
               this.cdr.detectChanges();
             });
           }
-          
+
           this.eventService.getEventMediaByEvent(createdId).subscribe({
             next: (medias) => {
               const base = this.baseUrl;
@@ -313,7 +325,6 @@ export class OrganizerDashboardComponent implements OnInit {
             }
           });
         } else {
-          
           if (created) {
             const minimal: any = { ...created, previewImageUrl: this.selectedImagePreview || null };
             if (!this.events.some((e) => e.id === minimal.id)) {
@@ -344,8 +355,9 @@ export class OrganizerDashboardComponent implements OnInit {
       },
       error: (err: any) => {
         console.error('Erreur création', err);
-        
-        this.eventService.getMyEvents('admin@eventwhere.com').subscribe({
+
+        const currentUserEmail = this.authService.currentUserValue?.email || 'admin@eventwhere.com';
+  this.eventService.getMyEvents(currentUserEmail).subscribe({
           next: (data) => {
             this.events = data.map((e) => ({ ...(e as Event), previewImageUrl: null })) as EventWithPreview[];
             const found = this.findCreatedEvent(formattedEvent);
@@ -431,17 +443,15 @@ export class OrganizerDashboardComponent implements OnInit {
     if (!media || !media.id) return;
     this.eventService.deleteMedia(media.id).subscribe({
       next: () => {
-        
         this.existingMedia = this.existingMedia.filter((m: any) => m.id !== media.id);
         this.selectedEventMedia = this.selectedEventMedia.filter((m: any) => m.id !== media.id);
 
         if (this.selectedEvent && (this.selectedEvent as any).docs) {
-          (this.selectedEvent as any).docs = (this.selectedEvent as any).docs.filter(
+          (this.selectedEvent as EventWithPreview & any).docs = (this.selectedEvent as any).docs.filter(
             (d: any) => d.url !== media.url && d.filename !== media.filename
           );
         }
 
-        
         this.events = this.events.map((e) => {
           if (e.id === media.eventId) {
             const newE = { ...e } as any;
@@ -458,13 +468,11 @@ export class OrganizerDashboardComponent implements OnInit {
           return e;
         });
 
-       
         if (this.isEditing && this.editingEventId === media.eventId) {
           if (media.type === 'image' && (this.newEvent as any).previewImageUrl === media.url) {
             (this.newEvent as any).previewImageUrl = null;
             this.selectedImagePreview = null;
           }
-          
         }
 
         this.ngZone.run(() => {
@@ -492,7 +500,6 @@ export class OrganizerDashboardComponent implements OnInit {
             }));
           }
 
-          
           const local = this.events.find((ev) => ev.id === event.id);
           if (!full.imageUrl && local && (local as EventWithPreview).previewImageUrl) {
             (full as EventWithPreview).previewImageUrl = (local as EventWithPreview).previewImageUrl;
@@ -507,7 +514,7 @@ export class OrganizerDashboardComponent implements OnInit {
         },
         error: (err: any) => {
           console.warn('Erreur fetching event details, showing available data', err);
-          
+
           this.selectedEvent = event;
           this.showEventDetailModal = true;
           this.ngZone.run(() => this.cdr.detectChanges());
@@ -578,12 +585,12 @@ export class OrganizerDashboardComponent implements OnInit {
       } catch (e) {}
       this.selectedVideoPreview = null;
     }
-    
+
     if (this.selectedImagePreview && this.selectedImagePreview.startsWith && this.selectedImagePreview.startsWith('blob:')) {
       try {
         URL.revokeObjectURL(this.selectedImagePreview);
       } catch (e) {}
-      
+
       this.selectedImagePreview = null;
       (this.newEvent as EventWithPreview).previewImageUrl = null;
     }
@@ -611,7 +618,6 @@ export class OrganizerDashboardComponent implements OnInit {
     return (event as any) || {};
   }
 
-  
   getEventImageUrl(ev: EventWithPreview | any): string {
     if (!ev) return this.defaultImage;
     const server = (ev as any).imageUrl;
@@ -651,7 +657,7 @@ export class OrganizerDashboardComponent implements OnInit {
     this.uploadProgress = 'Upload en cours...';
     return this.http.post(`http://localhost:9090/api/events/${eventId}/media`, formData).pipe(
       tap((response: any) => {
-        this.uploadProgress = `✅ ${file.name} uploadé`;
+        this.uploadProgress = ` ${file.name} uploadé`;
         try {
           const base = this.baseUrl;
           const raw = response?.url ? (response.url.startsWith('/') ? `${base}${response.url}` : response.url) : null;
@@ -972,7 +978,6 @@ export class OrganizerDashboardComponent implements OnInit {
   }
 
   resetForm() {
-    
     try {
       if (this.selectedImagePreview && this.selectedImagePreview.startsWith && this.selectedImagePreview.startsWith('blob:')) {
         URL.revokeObjectURL(this.selectedImagePreview);
@@ -1011,4 +1016,22 @@ export class OrganizerDashboardComponent implements OnInit {
     this.showStats = false;
     this.showNotificationForm = false;
   }
+
+  // Profile UI
+  toggleProfileMenu() {
+    this.showProfileMenu = !this.showProfileMenu;
+  }
+
+  logout() {
+  this.authService.logout().subscribe({
+    next: () => {
+      this.showProfileMenu = false;
+      window.location.href = '/home';
+    },
+    error: () => {
+      this.showProfileMenu = false;
+      window.location.href = '/home';
+    }
+  });
+}
 }

@@ -1,8 +1,3 @@
-<section class="role-header">
-  <h2>Interface Organisateur</h2>
-  <p>Créer, gérer et analyser vos événements</p>
-</section>
-
 <section class="role-actions">
   <div class="action-card">
     <div class="card-icon"></div>
@@ -94,10 +89,6 @@
           <button type="button" class="btn-upload" (click)="docInput.click()">Documents</button>
         </div>
         <div *ngIf="uploadProgress" class="upload-progress" style="margin-top:8px;color:#2b7a2b">{{ uploadProgress }}</div>
-
-        <!-- Removed the small inline "Preview" image from the form to avoid showing the 'Preview' alt text
-             when the image cannot be rendered. The image preview is still available in the dedicated
-             "Aperçu des médias" modal. -->
 
         <div *ngIf="selectedImage" style="margin-top:6px;color:#444">Image sélectionnée: {{ selectedImage.name }}</div>
 
@@ -343,9 +334,6 @@
 </section>
 
 
-<!-- Ajoutez ces sections APRÈS la section showParticipants dans votre HTML -->
-
-<!-- MODAL STATISTIQUES -->
 <section *ngIf="showStats" class="modal-overlay" (click)="closeModals()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <h3>Statistiques des événements</h3>
@@ -371,7 +359,6 @@
   </div>
 </section>
 
-<!-- MODAL NOTIFICATIONS -->
 <section *ngIf="showNotificationForm" class="modal-overlay" (click)="closeModals()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <h3>Envoyer une notification</h3>

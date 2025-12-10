@@ -5,12 +5,21 @@ $app-gray: #444;
 $app-beige: #e3d4cb;
 
 
+
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
 .app-container {
   background: $app-pink-light;
   min-height: 100vh;
   font-family: "Poppins", sans-serif;
   color: $app-gray;
   padding-bottom: 50px;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 /* HEADER */
@@ -19,6 +28,10 @@ $app-beige: #e3d4cb;
   text-align: center;
   padding: 40px 20px;
   color: white;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
   .title {
     font-size: 2.6rem;
@@ -28,6 +41,7 @@ $app-beige: #e3d4cb;
   .subtitle {
     opacity: 0.9;
     font-size: 1.2rem;
+    margin-bottom: 0;
   }
 }
 
@@ -36,7 +50,7 @@ $app-beige: #e3d4cb;
   background: white;
   padding: 12px;
   display: flex;
-  justify-content: center;
+  //justify-content: center;
   gap: 1rem;
   border-bottom: 2px solid $app-pink;
 

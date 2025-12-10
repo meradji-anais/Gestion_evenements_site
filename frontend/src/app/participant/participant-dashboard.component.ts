@@ -1,5 +1,4 @@
-
-import { Component, OnInit, NgZone } from '@angular/core';
+import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EventService, Event } from '../services/event.service';
@@ -7,7 +6,9 @@ import { ParticipantService, Participant } from '../services/participant.service
 import { NotificationService, Notification } from '../services/notification.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { forkJoin } from 'rxjs';
-import { ChangeDetectorRef } from '@angular/core';
+import { AuthService } from '../services/auth.service';
+
+import { Router } from '@angular/router';
 
 type NotificationWithEvent = Notification & { eventTitle?: string };
 
@@ -33,9 +34,12 @@ export class ParticipantDashboardComponent implements OnInit {
   pendingUnregisterIds: Set<number> = new Set();
   searchKeyword = '';
   searchDate = '';
-  participantEmail = 'meradji@mail.com';
+  participantEmail = '';
   showNotifications = false;
   private readonly base = 'http://localhost:9090';
+
+  // UI profile menu
+  showProfileMenu = false;
 
   constructor(
     private eventService: EventService,
@@ -43,14 +47,19 @@ export class ParticipantDashboardComponent implements OnInit {
     private notificationService: NotificationService,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    public authService: AuthService,
+    private router: Router
   ) {}
 
-  ngOnInit() {
-    this.loadEvents();
-    this.loadMyRegistrations();
-    this.loadNotifications();
-  }
+ ngOnInit() {
+  
+  this.participantEmail = this.authService.currentUserValue?.email || 'meradji@mail.com';
+  
+  this.loadEvents();
+  this.loadMyRegistrations();
+  this.loadNotifications();
+}
 
   private addCacheBuster(url: string | null | undefined): string | null {
     if (!url) return null;
@@ -118,23 +127,20 @@ export class ParticipantDashboardComponent implements OnInit {
     this.events = filtered;
   }
 
-  
-   
   registerToEvent(eventId: number) {
     if (!eventId) return;
     if (this.pendingRegistrations.has(eventId)) return; 
     if (this.isRegistered(eventId)) return; 
 
-    
     this.pendingRegistrations.add(eventId);
-    const tempId = -Date.now(); 
+    const tempId = -Date.now();
     const tempRegistration: Participant = {
       id: tempId,
       eventId: eventId,
       name: 'Meradji Anais',
       email: this.participantEmail
     };
-   
+
     this.myRegistrations.push(tempRegistration);
 
     const registrationPayload: Participant = {
@@ -145,21 +151,18 @@ export class ParticipantDashboardComponent implements OnInit {
 
     this.participantService.register(registrationPayload).subscribe({
       next: (created) => {
-       
         const idx = this.myRegistrations.findIndex(r => r.id === tempId);
         if (idx !== -1 && created) {
           this.myRegistrations[idx] = created;
         } else if (created) {
-          
           this.myRegistrations.push(created);
         }
         this.pendingRegistrations.delete(eventId);
         this.unreadCount = this.unreadCount + 1;
         this.loadNotifications();
-        this.loadMyRegistrations(); 
+        this.loadMyRegistrations();
       },
       error: (err) => {
-        
         this.pendingRegistrations.delete(eventId);
         this.myRegistrations = this.myRegistrations.filter(r => r.id !== tempId);
         console.error('Erreur inscription', err);
@@ -177,7 +180,6 @@ export class ParticipantDashboardComponent implements OnInit {
     });
   }
 
-  
   unregister(id: number) {
     if (id == null) return;
     const reg = this.myRegistrations.find(r => r.id === id);
@@ -185,12 +187,10 @@ export class ParticipantDashboardComponent implements OnInit {
     const eventId = reg.eventId;
 
     if (!confirm('Se désinscrire de cet événement ?')) return;
-    
+
     if (id < 0) {
-      
       this.pendingRegistrations.delete(eventId!);
       this.myRegistrations = this.myRegistrations.filter(r => r.id !== id);
-      
       return;
     }
 
@@ -350,4 +350,23 @@ export class ParticipantDashboardComponent implements OnInit {
     const ids = new Set(this.myRegistrations.map(r => r.eventId));
     return this.events.filter(e => e.id != null && ids.has(e.id));
   }
+
+  // Profile UI
+  toggleProfileMenu() {
+    this.showProfileMenu = !this.showProfileMenu;
+  }
+
+  logout() {
+  this.authService.logout().subscribe({
+    next: () => {
+      this.showProfileMenu = false;
+      window.location.href = '/home';
+    },
+    error: () => {
+      this.showProfileMenu = false;
+      window.location.href = '/home';
+    }
+  });
+}
+
 }
