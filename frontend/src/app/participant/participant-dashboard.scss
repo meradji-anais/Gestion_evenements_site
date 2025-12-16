@@ -103,3 +103,83 @@
 .notif-date { display:block; font-size:0.78rem; color:#666; }
 
 .notif-meta .btn-mark-read { margin-left: 8px; }
+
+
+
+// Badge statut événement
+.event-status-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+
+  .badge-ended {
+    display: inline-block;
+    padding: 6px 14px;
+    background: rgba(128, 128, 128, 0.95);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .badge-today {
+    display: inline-block;
+    padding: 6px 14px;
+    background: rgba(76, 175, 80, 0.95);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Style pour les événements terminés
+.event-card.event-ended {
+  opacity: 0.75;
+  position: relative;
+  
+  img {
+    filter: grayscale(40%);
+  }
+
+  h4 {
+    color: #666;
+  }
+}
+
+// Message "Inscriptions closes"
+.event-ended-message {
+  display: inline-block;
+  padding: 8px 16px;
+  background: #f5f5f5;
+  color: #666;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+// Hover sur événements terminés
+.event-card.event-ended:hover {
+  opacity: 0.85;
+}
+
+// Styles pour les évaluations
+.review-item {
+  background: #f9f9f9;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: 0.2s;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+}
+
+.modal-large {
+  max-width: 800px;
+}

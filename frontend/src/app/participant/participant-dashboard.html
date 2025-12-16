@@ -108,20 +108,39 @@
     <p>Aucun événement trouvé.</p>
   </div>
 
-  <div class="event-card" *ngFor="let event of events">
-    <img [src]="event.imageUrl || 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=900&q=60'" />
-    <div>
-      <h4>{{ event.title }}</h4>
-      <p>{{ event.type }} • {{ event.eventDate | date:'dd/MM/yyyy' }}</p>
-      <p>Lieu : {{ event.location }}</p>
-      <p>Capacité : {{ event.capacity }} personnes</p>
-      <div class="cta-buttons">
-        <button class="secondary" (click)="openEventDetails(event)">Consulter</button>
+  
+
+<div class="event-card" *ngFor="let event of events" [class.event-ended]="isEventEnded(event.eventDate)">
+  <img [src]="event.imageUrl || 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=900&q=60'" />
+  
+  <!-- Badge statut événement -->
+  <div class="event-status-badge" *ngIf="getEventStatus(event.eventDate) !== 'upcoming'">
+    <span *ngIf="getEventStatus(event.eventDate) === 'ended'" class="badge-ended">Événement terminé</span>
+    <span *ngIf="getEventStatus(event.eventDate) === 'today'" class="badge-today">Aujourd'hui</span>
+  </div>
+  
+  <div>
+    <h4>{{ event.title }}</h4>
+    <p>{{ event.type }} • {{ event.eventDate | date:'dd/MM/yyyy' }}</p>
+    <p>Lieu : {{ event.location }}</p>
+    <p>Capacité : {{ event.capacity }} personnes</p>
+    <div class="cta-buttons">
+      <button class="secondary" (click)="openEventDetails(event)">Consulter</button>
+      
+       <ng-container *ngIf="!isEventEnded(event.eventDate)">
         <button *ngIf="!isRegistered(event.id)" class="primary" (click)="registerToEvent(event.id!)" [disabled]="pendingRegistrations.has(event.id!)">S'inscrire</button>
         <button *ngIf="isRegistered(event.id)" class="secondary" (click)="unregister(getRegistrationId(event.id)!)" [disabled]="pendingUnregisterIds.has(getRegistrationId(event.id)!)">Se désinscrire</button>
-      </div>
+      </ng-container>
+      
+      <!-- Message + Bouton évaluation si événement terminé ET inscrit -->
+      <ng-container *ngIf="isEventEnded(event.eventDate)">
+        <span class="event-ended-message">Inscriptions closes</span>
+        <button *ngIf="isRegistered(event.id)" class="primary" (click)="openReviewModal(event)">⭐ Évaluer</button>
+      </ng-container>
+      
     </div>
   </div>
+</div>
 </section>
 
 <section *ngIf="showEventDetailModal && selectedEvent" class="modal-overlay" (click)="closeEventDetails()">
@@ -183,3 +202,71 @@
     <button class="secondary" (click)="closeMediaModal()" style="margin-top:16px;">Fermer</button>
   </div>
 </section>
+
+
+  <!-- Modal Évaluation -->
+<section *ngIf="showReviewModal && selectedEventForReview" class="modal-overlay" (click)="closeReviewModal()">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <h3>⭐ Évaluer l'événement</h3>
+    
+    <div style="padding:12px; background:#f9f9f9; border-radius:8px; margin-bottom:16px;">
+      <h4 style="margin:0 0 4px 0;">{{ selectedEventForReview.title }}</h4>
+      <p style="margin:0; color:#666; font-size:0.9em;">{{ selectedEventForReview.eventDate | date:'dd/MM/yyyy' }} • {{ selectedEventForReview.location }}</p>
+    </div>
+
+    <!-- Formulaire d'évaluation -->
+    <div *ngIf="!hasAlreadyReviewed" style="border:1px solid #ddd; padding:16px; border-radius:8px; margin-bottom:16px; background:#fff;">
+      <h4 style="margin-top:0;">Votre évaluation</h4>
+      
+      <div style="margin-bottom:16px;">
+        <label style="display:block; margin-bottom:8px; font-weight:500;">Note :</label>
+        <div style="display:flex; gap:8px; font-size:2em;">
+          <span *ngFor="let i of [1,2,3,4,5]" 
+                (click)="selectRating(i)" 
+                [style.color]="i <= newReview.rating ? '#FFD700' : '#ddd'"
+                style="cursor:pointer; transition:0.2s;">
+            ★
+          </span>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="display:block; margin-bottom:8px; font-weight:500;">Commentaire :</label>
+        <textarea 
+          [(ngModel)]="newReview.comment" 
+          rows="4" 
+          placeholder="Partagez votre expérience..."
+          style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; font-family:inherit;"></textarea>
+      </div>
+
+      <button class="primary" (click)="submitReview()">Envoyer mon évaluation</button>
+    </div>
+
+    <div *ngIf="hasAlreadyReviewed" style="padding:12px; background:#fff3cd; border-radius:8px; margin-bottom:16px; border:1px solid #ffc107;">
+      <p style="margin:0; color:#856404;">✓ Vous avez déjà évalué cet événement.</p>
+    </div>
+
+    <!-- Liste des évaluations existantes -->
+    <div style="margin-top:16px;">
+      <h4>💬 Évaluations des participants ({{ eventReviews.length }})</h4>
+      
+      <div *ngIf="eventReviews.length === 0" class="empty-state">
+        <p>Aucune évaluation pour le moment. Soyez le premier !</p>
+      </div>
+
+      <div *ngFor="let review of eventReviews" class="review-item">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <strong>{{ review.participantName }}</strong>
+          <div style="color:#FFD700; font-size:1.2em;">
+            <span *ngFor="let i of [1,2,3,4,5]">{{ i <= review.rating ? '★' : '☆' }}</span>
+          </div>
+        </div>
+        <p style="margin:0 0 6px 0; color:#333;">{{ review.comment }}</p>
+        <span style="font-size:0.85em; color:#999;">{{ review.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+    </div>
+
+    <button class="secondary" (click)="closeReviewModal()" style="margin-top:16px;">Fermer</button>
+  </div>
+</section>
+

@@ -5,40 +5,42 @@ import { AuthService } from './services/auth.service';
 import { HttpClientModule } from '@angular/common/http'; 
 
 @Component({
-  selector: 'app-root',
-  standalone: true, 
-  imports: [CommonModule, RouterModule, RouterLink, RouterOutlet, HttpClientModule], 
-  templateUrl: './app.html', 
-  styleUrls: ['./app.scss'] 
+  selector: 'app-root',
+  standalone: true, 
+  imports: [CommonModule, RouterModule, RouterLink, RouterOutlet, HttpClientModule], 
+  templateUrl: './app.html', 
+  styleUrls: ['./app.scss'] 
 })
 export class AppComponent {
-  
-  
-  showProfileMenu: boolean = false;
-  
-  constructor(
-    public authService: AuthService,
-    private router: Router
-  ) {}
-
-  
-  toggleProfileMenu() {
-    this.showProfileMenu = !this.showProfileMenu;
-  }
-
-  
-  logout() {
-  this.showProfileMenu = false;
+  showProfileMenu: boolean = false;
   
-  this.authService.logout().subscribe({
-    next: () => {
-      
-      window.location.href = '/home';
-    },
-    error: (err) => {
-      console.error('Erreur de déconnexion, mais navigation vers /home', err);
-      window.location.href = '/home';
-    }
-  });
-}
+  constructor(
+    public authService: AuthService,
+    private router: Router
+  ) {}
+
+  toggleProfileMenu() {
+    this.showProfileMenu = !this.showProfileMenu;
+  }
+
+  logout() {
+    this.showProfileMenu = false;
+    
+    console.log(' Déconnexion en cours...');
+    
+    this.authService.logout().subscribe({
+      next: () => {
+        console.log(' Déconnexion réussie');
+       
+        this.router.navigate(['/home']).then(() => {
+          console.log(' Redirection vers /home');
+        });
+      },
+      error: (err) => {
+        console.error(' Erreur lors de la déconnexion:', err);
+       
+        this.router.navigate(['/home']);
+      }
+    });
+  }
 }

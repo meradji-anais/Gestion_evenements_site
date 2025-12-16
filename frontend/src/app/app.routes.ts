@@ -6,8 +6,10 @@ import { OrganizerDashboardComponent } from './organizer/organizer-dashboard.com
 import { ParticipantDashboardComponent } from './participant/participant-dashboard.component';
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
+import { guestGuard } from './guards/guest.guard'; 
 
 export const routes: Routes = [
+  // Routes publiques (accessibles par tous)
   { 
     path: '', 
     component: HomeComponent 
@@ -16,14 +18,19 @@ export const routes: Routes = [
     path: 'home', 
     component: HomeComponent 
   },
+  
+  
+  { 
+    path: 'auth', 
+    component: AuthComponent,
+    canActivate: [guestGuard] 
+  },
+  
+  
   { 
     path: 'dashboard', 
     component: DashboardComponent,
     canActivate: [authGuard]
-  },
-  { 
-    path: 'auth', 
-    component: AuthComponent 
   },
   { 
     path: 'organizer', 
@@ -37,8 +44,10 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { role: 'PARTICIPANT' }
   },
+  
+  // Fallback
   { 
     path: '**', 
-    redirectTo: '' 
+    redirectTo: 'home'  
   }
 ];

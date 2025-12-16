@@ -17,24 +17,15 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-  
-  
-  session:
-    store-type: none
+
+# Configuration JWT
+eventwhere:
+  app:
+    jwtSecret: VotreSecretSuperSecurise123456789012345678901234567890
+    jwtExpirationMs: 86400000  # 24 heures
 
 server:
   port: 9094
-  
-  servlet:
-    session:
-      timeout: 30m
-      cookie:
-        name: JSESSIONID
-        http-only: true
-        secure: false
-        same-site: lax
-        path: /
-        max-age: 1800
 
 eureka:
   client:
@@ -48,5 +39,4 @@ eureka:
 logging:
   level:
     com.eventwhere.auth: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.session: DEBUG
+    org.springframework.security: DEBUG

@@ -7,6 +7,7 @@ import { NotificationService, Notification } from '../services/notification.serv
 import { DomSanitizer } from '@angular/platform-browser';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { ReviewService, Review } from '../services/review.service';
 
 import { Router } from '@angular/router';
 
@@ -41,10 +42,20 @@ export class ParticipantDashboardComponent implements OnInit {
   // UI profile menu
   showProfileMenu = false;
 
+  showReviewModal = false;
+  selectedEventForReview: Event | null = null;
+  newReview = {
+    rating: 0,
+    comment: ''
+  };
+  eventReviews: Review[] = [];
+  hasAlreadyReviewed = false;
+
   constructor(
     private eventService: EventService,
     private participantService: ParticipantService,
     private notificationService: NotificationService,
+    private reviewService: ReviewService,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
     private ngZone: NgZone,
@@ -71,7 +82,19 @@ export class ParticipantDashboardComponent implements OnInit {
   loadEvents() {
     this.eventService.getAllEvents().subscribe({
       next: (data) => {
-        data.sort((a: Event, b: Event) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
+        // Tri : événements à venir d'abord, puis terminés
+        data.sort((a: Event, b: Event) => {
+          const statusA = this.getEventStatus(a.eventDate);
+          const statusB = this.getEventStatus(b.eventDate);
+          
+          // Si un est terminé et l'autre non, celui terminé va à la fin
+          if (statusA === 'ended' && statusB !== 'ended') return 1;
+          if (statusA !== 'ended' && statusB === 'ended') return -1;
+          
+          // Sinon tri par date (chronologique)
+          return new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime();
+        });
+        
         this.events = data;
         this.allEvents = data;
         this.events.forEach(event => {
@@ -365,6 +388,103 @@ export class ParticipantDashboardComponent implements OnInit {
     error: () => {
       this.showProfileMenu = false;
       window.location.href = '/home';
+    }
+  });
+}
+
+
+isEventEnded(eventDate: string | Date): boolean {
+  if (!eventDate) return false;
+  const now = new Date();
+  const eventDateObj = new Date(eventDate);
+  return eventDateObj < now;
+}
+
+getEventStatus(eventDate: string | Date): 'upcoming' | 'today' | 'ended' {
+  if (!eventDate) return 'upcoming';
+  const now = new Date();
+  const eventDateObj = new Date(eventDate);
+  
+  // Réinitialiser les heures pour comparer uniquement les dates
+  const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const eventDateOnly = new Date(eventDateObj.getFullYear(), eventDateObj.getMonth(), eventDateObj.getDate());
+  
+  if (eventDateOnly < nowDate) return 'ended';
+  if (eventDateOnly.getTime() === nowDate.getTime()) return 'today';
+  return 'upcoming';
+}
+
+// Système d'évaluation
+openReviewModal(event: Event) {
+  if (!this.isEventEnded(event.eventDate)) {
+    alert("Vous ne pouvez évaluer que les événements terminés.");
+    return;
+  }
+  
+  this.selectedEventForReview = event;
+  this.newReview = { rating: 0, comment: '' };
+  this.hasAlreadyReviewed = false;
+  
+  // Vérifier si déjà évalué
+  if (event.id) {
+    this.reviewService.hasParticipantReviewed(event.id, this.participantEmail).subscribe({
+      next: (hasReviewed) => {
+        this.hasAlreadyReviewed = hasReviewed;
+        this.cdr.detectChanges();
+      }
+    });
+    
+    // Charger les évaluations existantes
+    this.reviewService.getReviewsByEvent(event.id).subscribe({
+      next: (reviews) => {
+        this.eventReviews = reviews;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+  
+  this.showReviewModal = true;
+}
+
+closeReviewModal() {
+  this.showReviewModal = false;
+  this.selectedEventForReview = null;
+  this.eventReviews = [];
+}
+
+selectRating(stars: number) {
+  this.newReview.rating = stars;
+}
+
+submitReview() {
+  if (!this.selectedEventForReview || !this.selectedEventForReview.id) return;
+  
+  if (this.newReview.rating === 0) {
+    alert("Veuillez sélectionner une note (1 à 5 étoiles)");
+    return;
+  }
+  
+  if (!this.newReview.comment.trim()) {
+    alert("Veuillez ajouter un commentaire");
+    return;
+  }
+  
+  const review: Review = {
+    eventId: this.selectedEventForReview.id,
+    participantName: 'Meradji Anais',
+    participantEmail: this.participantEmail,
+    rating: this.newReview.rating,
+    comment: this.newReview.comment.trim()
+  };
+  
+  this.reviewService.createReview(review).subscribe({
+    next: () => {
+      alert(" Votre évaluation a été enregistrée !");
+      this.closeReviewModal();
+    },
+    error: (err) => {
+      console.error('Erreur création évaluation', err);
+      alert("Erreur lors de l'envoi de votre évaluation. Vous avez peut-être déjà évalué cet événement.");
     }
   });
 }

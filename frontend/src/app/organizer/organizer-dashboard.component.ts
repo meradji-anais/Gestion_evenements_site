@@ -9,6 +9,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { merge, forkJoin, tap, catchError, of } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
+import { ReviewService, Review, ReviewStats } from '../services/review.service';
 
 type EventWithPreview = Event & { previewImageUrl?: string | null };
 
@@ -69,11 +70,17 @@ export class OrganizerDashboardComponent implements OnInit {
 
   // UI profile menu
   showProfileMenu = false;
+ showReviewsModal = false;
+  selectedEventReviews: Review[] = [];
+  selectedEventReviewStats: ReviewStats | null = null;
+  selectedEventForReviews: EventWithPreview | null = null;
+
 
   constructor(
     private eventService: EventService,
     private participantService: ParticipantService,
     private notificationService: NotificationService,
+    private reviewService: ReviewService,
     private http: HttpClient,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
@@ -111,7 +118,18 @@ export class OrganizerDashboardComponent implements OnInit {
   const currentUserEmail = this.authService.currentUserValue?.email || 'admin@eventwhere.com';
   this.eventService.getMyEvents(currentUserEmail).subscribe({
       next: (data) => {
-        data.sort((a: Event, b: Event) => (b.id || 0) - (a.id || 0));
+        // Tri : événements à venir d'abord, puis terminés
+        data.sort((a: Event, b: Event) => {
+          const statusA = this.getEventStatus(a.eventDate);
+          const statusB = this.getEventStatus(b.eventDate);
+          
+          // Si un est terminé et l'autre non, celui terminé va à la fin
+          if (statusA === 'ended' && statusB !== 'ended') return 1;
+          if (statusA !== 'ended' && statusB === 'ended') return -1;
+          
+          // Sinon tri par date (plus récents d'abord)
+          return (b.id || 0) - (a.id || 0);
+        });
 
         this.events = data.map((e) => ({ ...(e as Event), previewImageUrl: null })) as EventWithPreview[];
         const mediaCalls = this.events.map((ev) => (ev.id ? this.eventService.getEventMediaByEvent(ev.id) : of([])));
@@ -151,7 +169,7 @@ export class OrganizerDashboardComponent implements OnInit {
       error: (err: any) => console.error('Erreur', err)
     });
   }
-
+  
   toggleCreateForm() {
     this.showCreateForm = !this.showCreateForm;
     if (!this.showCreateForm) this.resetForm();
@@ -1034,4 +1052,72 @@ const formattedEvent = {
     }
   });
 }
+
+
+isEventEnded(eventDate: string | Date): boolean {
+  if (!eventDate) return false;
+  const now = new Date();
+  const eventDateObj = new Date(eventDate);
+  return eventDateObj < now;
+}
+
+getEventStatus(eventDate: string | Date): 'upcoming' | 'today' | 'ended' {
+  if (!eventDate) return 'upcoming';
+  const now = new Date();
+  const eventDateObj = new Date(eventDate);
+  
+  // Réinitialiser les heures pour comparer uniquement les dates
+  const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const eventDateOnly = new Date(eventDateObj.getFullYear(), eventDateObj.getMonth(), eventDateObj.getDate());
+  
+  if (eventDateOnly < nowDate) return 'ended';
+  if (eventDateOnly.getTime() === nowDate.getTime()) return 'today';
+  return 'upcoming';
+}
+// Système d'évaluation
+openReviewsModal(event: EventWithPreview) {
+  if (!this.isEventEnded(event.eventDate)) {
+    alert("Les évaluations ne sont disponibles que pour les événements terminés.");
+    return;
+  }
+  
+  if (!event.id) return;
+  
+  this.selectedEventForReviews = event;
+  
+  // Charger statistiques
+  this.reviewService.getEventReviewStats(event.id).subscribe({
+    next: (stats) => {
+      this.selectedEventReviewStats = stats;
+      this.cdr.detectChanges();
+    }
+  });
+  
+  // Charger évaluations
+  this.reviewService.getReviewsByEvent(event.id).subscribe({
+    next: (reviews) => {
+      this.selectedEventReviews = reviews;
+      this.showReviewsModal = true;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Erreur chargement évaluations', err);
+      this.selectedEventReviews = [];
+      this.showReviewsModal = true;
+    }
+  });
+}
+
+closeReviewsModal() {
+  this.showReviewsModal = false;
+  this.selectedEventReviews = [];
+  this.selectedEventReviewStats = null;
+  this.selectedEventForReviews = null;
+  
+  
+  this.ngZone.run(() => {
+    this.cdr.detectChanges();
+  });
+}
+
 }

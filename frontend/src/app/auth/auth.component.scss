@@ -121,3 +121,62 @@
   border-top: 1px solid #eee;
   text-align: center;
 }
+
+//  Styles pour "Mot de passe oublié"
+.forgot-password {
+  text-align: center;
+  margin-top: 1rem;
+  
+  .forgot-link {
+    color: #d7a28e;
+    font-size: 0.9rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    
+    &:hover {
+      color: #a24f4b;
+      text-decoration: underline;
+    }
+  }
+}
+
+//  Styles pour la page de réinitialisation
+.reset-info {
+  background: #f8f9fa;
+  border-left: 4px solid #7bac7e;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.back-to-login {
+  text-align: center;
+  margin-top: 1rem;
+  
+  .back-link {
+    color: #666;
+    font-size: 0.9rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    
+    &:hover {
+      color: #d7a28e;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 500px) {
+  .auth-card {
+    padding: 1.5rem;
+  }
+  
+  .auth-container {
+    padding: 1rem;
+  }
+}

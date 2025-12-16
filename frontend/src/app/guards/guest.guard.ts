@@ -4,15 +4,15 @@ import { isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { map, filter, take } from 'rxjs/operators';
 
-export const roleGuard: CanActivateFn = (route, state) => {
+
+export const guestGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const platformId = inject(PLATFORM_ID);
-  const requiredRole = route.data['role'] as string;
 
   
   if (!isPlatformBrowser(platformId)) {
-    console.log(' RoleGuard SSR : Autorisation temporaire (vérification côté client)');
+    console.log(' GuestGuard SSR : Autorisation temporaire');
     return true;
   }
 
@@ -21,20 +21,16 @@ export const roleGuard: CanActivateFn = (route, state) => {
     filter(user => user !== undefined), 
     take(1),
     map(user => {
-      if (!user) {
-        console.warn(' Accès refusé : utilisateur non trouvé');
-        router.navigate(['/auth']);
+      if (user) {
+        //  Utilisateur connecté = Bloquer l'accès à /auth
+        console.warn(' Accès refusé à /auth : déjà connecté');
+        router.navigate(['/dashboard']);
         return false;
       }
       
-      if (user.role === requiredRole) {
-        console.log(` Accès autorisé pour ${user.name} (${user.role})`);
-        return true;
-      }
-
-      console.warn(` Accès refusé : rôle requis=${requiredRole}, rôle actuel=${user.role}`);
-      router.navigate(['/dashboard']);
-      return false;
+      //  Pas connecté = Autoriser l'accès
+      console.log(' Accès autorisé à /auth : non connecté');
+      return true;
     })
   );
 };

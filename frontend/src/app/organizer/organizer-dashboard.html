@@ -79,7 +79,7 @@
       </div>
 
       <div class="form-group">
-        <label>🖼️ Ajouter des médias</label>
+        <label>Ajouter des médias</label>
         <div class="media-upload">
           <input #imgInput type="file" accept="image/jpeg,image/png" style="display:none" (change)="onFileSelectedByType($event,'image')">
           <input #videoInput type="file" accept="video/mp4" style="display:none" (change)="onFileSelectedByType($event,'video')">
@@ -132,8 +132,8 @@
       </div>
 
       <div class="form-actions">
-        <button type="button" class="primary" (click)="previewBeforePublish()" *ngIf="selectedImage || selectedVideo || selectedDocs.length > 0 || selectedImagePreview || selectedVideoPreview || (selectedDocsPreviews && selectedDocsPreviews.length > 0)">👁️ Aperçu médias</button>
-        <button type="submit" class="primary" [disabled]="isSubmitting">{{ isSubmitting ? '⏳ Création...' : 'Créer l\'événement' }}</button>
+        <button type="button" class="primary" (click)="previewBeforePublish()" *ngIf="selectedImage || selectedVideo || selectedDocs.length > 0 || selectedImagePreview || selectedVideoPreview || (selectedDocsPreviews && selectedDocsPreviews.length > 0)">Aperçu médias</button>
+        <button type="submit" class="primary" [disabled]="isSubmitting">{{ isSubmitting ? 'Création...' : 'Créer l\'événement' }}</button>
         <button type="button" class="secondary" (click)="toggleCreateForm()">Annuler</button>
       </div>
     </form>
@@ -219,20 +219,29 @@
     <button class="primary" (click)="toggleCreateForm()">Créer mon premier événement</button>
   </div>
 
-  <div class="event-card" *ngFor="let event of events">
-    <img [src]="getEventImageUrl(event)" alt="Event image" />
-    <div class="event-info">
-      <button class="edit-btn primary" (click)="openEditForm(event)">Modifier</button>
-      <h4>{{ event.title }}</h4>
-      <p>{{ event.type }} • {{ event.eventDate | date:'dd/MM/yyyy HH:mm' }}</p>
-      <p>{{ event.location }} • Capacité: {{ event.capacity }}</p>
-      <div class="cta-buttons">
-        <button class="primary" (click)="openEventInfo(event)">Informations</button>
-        <button class="primary" (click)="viewParticipants(event.id!)">Participants</button>
-        <button class="secondary" (click)="deleteEvent(event.id!)">Supprimer</button>
-      </div>
-    </div>
+  <div class="event-card" *ngFor="let event of events" [class.event-ended]="isEventEnded(event.eventDate)">
+  <img [src]="getEventImageUrl(event)" alt="Event image" />
+  
+  <div class="event-status-badge" *ngIf="getEventStatus(event.eventDate) !== 'upcoming'">
+    <span *ngIf="getEventStatus(event.eventDate) === 'ended'" class="badge-ended">Événement terminé</span>
+    <span *ngIf="getEventStatus(event.eventDate) === 'today'" class="badge-today">Aujourd'hui</span>
   </div>
+  
+  <div class="event-info">
+    <button class="edit-btn primary" (click)="openEditForm(event)">Modifier</button>
+    <h4>{{ event.title }}</h4>
+    <p>{{ event.type }} - {{ event.eventDate | date:'dd/MM/yyyy HH:mm' }}</p>
+    <p>{{ event.location }} - Capacité: {{ event.capacity }}</p>
+     <div class="cta-buttons">
+      <button class="secondary" (click)="openEventInfo(event)">Informations</button>
+      <button class="primary" (click)="viewParticipants(event.id!)">Participants</button>
+      <button *ngIf="isEventEnded(event.eventDate)" class="primary" (click)="openReviewsModal(event)">Évaluations</button>
+      <button class="secondary" (click)="deleteEvent(event.id!)">Supprimer</button>
+    </div>
+
+  </div>
+</div>
+
 </section>
 
 <section *ngIf="showEventDetailModal && selectedEvent" class="modal-overlay" (click)="closeEventDetails()">
@@ -253,7 +262,7 @@
       <p>{{ selectedEvent.description }}</p>
     </div>
     <div style="display:flex; gap:8px; justify-content:flex-start; margin-top:12px;">
-      <button class="primary" (click)="openMediaModal(selectedEvent.id!)" *ngIf="selectedEvent.id">📄 Voir documents & vidéos</button>
+      <button class="primary" (click)="openMediaModal(selectedEvent.id!)" *ngIf="selectedEvent.id">Voir documents & vidéos</button>
       <button class="secondary" (click)="closeEventDetails()">Fermer</button>
     </div>
   </div>
@@ -261,7 +270,7 @@
 
 <section *ngIf="showPreviewModal" class="modal-overlay" (click)="closePreviewModal()">
   <div class="modal-content modal-large" (click)="$event.stopPropagation()">
-    <h3>👁️ Aperçu des médias</h3>
+    <h3>Aperçu des médias</h3>
 
     <div *ngIf="previewMedias.length === 0" class="empty-state">
       <p>Aucun média sélectionné.</p>
@@ -270,11 +279,11 @@
     <div *ngIf="previewMedias.length > 0" style="display:flex; flex-direction:column; gap:16px;">
       <ng-container *ngFor="let media of previewMedias">
         <div *ngIf="media.type === 'image'" style="border:1px solid #ddd; padding:12px; border-radius:6px;">
-          <h4 style="margin-top:0;">🖼️ Image: {{ media.filename }}</h4>
+          <h4 style="margin-top:0;">Image: {{ media.filename }}</h4>
           <img [src]="media.preview" alt="Aperçu image" style="max-width:100%; max-height:400px; border-radius:4px; margin-top:8px;" />
         </div>
         <div *ngIf="media.type === 'video'" style="border:1px solid #ddd; padding:12px; border-radius:6px;">
-          <h4 style="margin-top:0;">🎥 Vidéo: {{ media.filename }}</h4>
+          <h4 style="margin-top:0;">Vidéo: {{ media.filename }}</h4>
           <div *ngIf="media.preview">
             <video width="100%" height="400" controls style="border-radius:4px; margin-top:8px;">
               <source [src]="media.preview" type="video/mp4">
@@ -283,7 +292,7 @@
           <p *ngIf="!media.preview" style="color:#666; font-size:0.9em;">La vidéo sera affichée une fois l'événement créé et uploadé.</p>
         </div>
         <div *ngIf="media.type === 'doc'" style="border:1px solid #ddd; padding:12px; border-radius:6px;">
-          <h4 style="margin-top:0;">📄 Document: {{ media.filename }}</h4>
+          <h4 style="margin-top:0;">Document: {{ media.filename }}</h4>
           <div *ngIf="media.preview">
             <iframe [src]="sanitizeUrl(media.preview)" width="100%" height="600" style="border:none; border-radius:4px; margin-top:8px;"></iframe>
           </div>
@@ -298,7 +307,7 @@
 
 <section *ngIf="showMediaModal" class="modal-overlay" (click)="closeMediaModal()">
   <div class="modal-content modal-large" (click)="$event.stopPropagation()">
-    <h3>📄 Documents & Vidéos</h3>
+    <h3>Documents & Vidéos</h3>
 
     <div *ngIf="selectedEventMedia.length === 0" class="empty-state">
       <p>Aucun document ou vidéo pour cet événement.</p>
@@ -307,24 +316,24 @@
     <div *ngIf="selectedEventMedia.length > 0" style="display:flex; flex-direction:column; gap:16px;">
       <ng-container *ngFor="let media of selectedEventMedia">
         <div *ngIf="media.type === 'video'" style="border:1px solid #ddd; padding:12px; border-radius:6px;">
-          <h4 style="margin-top:0;">🎥 Vidéo: {{ media.filename }}</h4>
+          <h4 style="margin-top:0;">Vidéo: {{ media.filename }}</h4>
           <video width="100%" height="400" controls style="border-radius:4px; margin-top:8px;">
             <source [src]="media.url" type="video/mp4">
           </video>
           <div style="margin-top:8px;">
-            <button class="secondary" (click)="confirmDeleteMedia(media)">🗑️ Supprimer</button>
+            <button class="secondary" (click)="confirmDeleteMedia(media)">Supprimer</button>
           </div>
         </div>
 
         <div *ngIf="media.type === 'doc'" style="border:1px solid #ddd; padding:12px; border-radius:6px;">
-          <h4 style="margin-top:0;">📄 Document: {{ media.filename }}</h4>
+          <h4 style="margin-top:0;">Document: {{ media.filename }}</h4>
           <iframe [src]="sanitizeUrl(media.url)" width="100%" height="600" style="border:none; border-radius:4px; margin-top:8px;"></iframe>
-          <button class="secondary" (click)="confirmDeleteMedia(media)" style="display:inline-block; margin-top:8px;">🗑️ Supprimer</button>
+          <button class="secondary" (click)="confirmDeleteMedia(media)" style="display:inline-block; margin-top:8px;">Supprimer</button>
         </div>
 
         <div *ngIf="media.type !== 'video' && media.type !== 'doc'" style="border:1px solid #ddd; padding:12px; border-radius:6px;">
-          <h4 style="margin-top:0;">📎 {{ media.filename }}</h4>
-          <button class="secondary" (click)="confirmDeleteMedia(media)">🗑️ Supprimer</button>
+          <h4 style="margin-top:0;">{{ media.filename }}</h4>
+          <button class="secondary" (click)="confirmDeleteMedia(media)">Supprimer</button>
         </div>
       </ng-container>
     </div>
@@ -332,7 +341,6 @@
     <button class="secondary" (click)="closeMediaModal()" style="margin-top:16px;">Fermer</button>
   </div>
 </section>
-
 
 <section *ngIf="showStats" class="modal-overlay" (click)="closeModals()">
   <div class="modal-content" (click)="$event.stopPropagation()">
@@ -402,5 +410,51 @@
         <button type="button" class="secondary" (click)="closeModals()">Annuler</button>
       </div>
     </form>
+  </div>
+</section>
+
+<section *ngIf="showReviewsModal && selectedEventForReviews" class="modal-overlay" (click)="closeReviewsModal()">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <h3>Évaluations de l'événement</h3>
+    
+    <div style="padding:12px; background:#f9f9f9; border-radius:8px; margin-bottom:16px;">
+      <h4 style="margin:0 0 4px 0;">{{ selectedEventForReviews.title }}</h4>
+      <p style="margin:0; color:#666; font-size:0.9em;">{{ selectedEventForReviews.eventDate | date:'dd/MM/yyyy' }} - {{ selectedEventForReviews.location }}</p>
+    </div>
+
+    <div *ngIf="selectedEventReviewStats" style="display:flex; gap:16px; margin-bottom:16px;">
+      <div style="flex:1; background:#fff3e0; padding:16px; border-radius:8px; text-align:center;">
+        <div style="font-size:2.5em; color:#f57c00; font-weight:bold;">{{ selectedEventReviewStats.averageRating | number:'1.1-1' }}</div>
+        <div style="color:#666; font-size:0.9em;">Note moyenne</div>
+      </div>
+      <div style="flex:1; background:#e8f5e9; padding:16px; border-radius:8px; text-align:center;">
+        <div style="font-size:2.5em; color:#2e7d32; font-weight:bold;">{{ selectedEventReviewStats.totalReviews }}</div>
+        <div style="color:#666; font-size:0.9em;">Évaluations</div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <h4>Commentaires des participants</h4>
+      
+      <div *ngIf="selectedEventReviews.length === 0" class="empty-state">
+        <p>Aucune évaluation pour cet événement.</p>
+      </div>
+
+      <div *ngFor="let review of selectedEventReviews" class="review-item">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div>
+            <strong>{{ review.participantName }}</strong>
+            <span style="color:#999; font-size:0.9em; margin-left:8px;">{{ review.participantEmail }}</span>
+          </div>
+          <div style="color:#FFD700; font-size:1.2em;">
+            <span *ngFor="let i of [1,2,3,4,5]">{{ i <= review.rating ? '★' : '☆' }}</span>
+          </div>
+        </div>
+        <p style="margin:0 0 6px 0; color:#333;">{{ review.comment }}</p>
+        <span style="font-size:0.85em; color:#999;">{{ review.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+    </div>
+
+    <button class="secondary" (click)="closeReviewsModal()" style="margin-top:16px;">Fermer</button>
   </div>
 </section>

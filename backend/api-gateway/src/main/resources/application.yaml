@@ -8,41 +8,45 @@ spring:
 
     gateway:
       routes:
-        
+        # Route pour les fichiers uploadés (images, vidéos, docs)
         - id: uploads-static
           uri: http://localhost:9091
           predicates:
             - Path=/uploads/**
         
-        
+        # Route pour event-service (INCLUT /api/reviews/**)
         - id: event-service
           uri: lb://EVENT-SERVICE
           predicates:
-            - Path=/api/events/**
-
+            - Path=/api/events/**, /api/reviews/**
+        
+        # Route pour participant-service
         - id: participant-service
           uri: lb://PARTICIPANT-SERVICE
           predicates:
             - Path=/api/participants/**
-
+        
+        # Route pour notification-service
         - id: notification-service
           uri: lb://NOTIFICATION-SERVICE
           predicates:
             - Path=/api/notifications/**
 
+      #  CONFIGURATION CORS GLOBALE 
       globalcors:
         cors-configurations:
           '[/**]':
-            allowed-origins:
-              - http://localhost:4200
-            allowed-methods:
+            allowedOrigins: "http://localhost:4200"
+            allowedMethods:
               - GET
               - POST
               - PUT
               - DELETE
               - OPTIONS
-            allowed-headers: "*"
-            allow-credentials: true
+              - PATCH
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
 
 server:
   port: 9090
