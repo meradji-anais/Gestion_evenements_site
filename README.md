@@ -1,13 +1,12 @@
-Création d'un site de gestion d'evenements respectant l'énoncé donné. 
+Création d'un site de gestion d'evenements.
 
 - 4 micro services ( authentification, event, participant, notification ) en plus des micro services techniques ( eureka et API gateway sur port 9090 )
-- Implémentation d'un systeme d'authentification sécurisé ( hachage de mot de passe, utilisation de JWT ( TOKEN généré sur JWTutils, application.yaml clé secrete et expiration sur 24h )
+- Implémentation d'un systeme d'authentification sécurisé ( hachage de mot de passe, utilisation de JWT ( TOKEN généré sur JWTutils,  clé secrete et expiration sur 24h )
 - Implémentation d'un systeme d'evaluation des events ( note sur 5 'etoiles' et commentaires )
 - Chaque micro service a sa propre base de données ( authdb, eventdb, participant_db, notification_db ), base de données H2 persistante.
 - 5 composants ( authentification, dashboard, home, organizer, participant )
 
-
-  Toutes les fonctionnalités de l'enoncé sont implémentées et fonctionnelles ( voir vidéos de démonstration .mp4 )
+2 rôles : 
   
   Organisateur :
   
@@ -36,10 +35,5 @@ Création d'un site de gestion d'evenements respectant l'énoncé donné.
 
   PS : deux types de notifications : les notifs automatiques, et aussi les notifs manuelles que l organisateur peut envoyer au participant en utilisant son mail.
 
-
-  Merci de regarder les vidéos de démonstration déposées sur le repository.
-
-
-  
 
   
